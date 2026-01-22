@@ -8,6 +8,7 @@ package com.axon.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,12 +31,21 @@ import com.axon.senzors.SensorViewModel
 class MainActivity : ComponentActivity() {
     private val sensorViewModel: SensorViewModel by viewModels()
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted! The ViewModel's sensor listener
+            // will now start receiving actual data.
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
-
         setTheme(android.R.style.Theme_DeviceDefault)
+
+        requestPermissionLauncher.launch(android.Manifest.permission.BODY_SENSORS)
 
         setContent {
             WearApp(sensorViewModel)
