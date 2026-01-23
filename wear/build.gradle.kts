@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.health:health-services-client:1.1.0-alpha05")
     implementation(libs.play.services.wearable)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -65,3 +66,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.tiles.tooling)
 }
+

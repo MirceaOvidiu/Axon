@@ -1,10 +1,6 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter to find the
- * most up to date changes to the libraries and their usages.
- */
-
 package com.axon.presentation
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,43 +16,37 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
-import androidx.wear.tooling.preview.devices.WearDevices
 import com.axon.presentation.theme.AxonTheme
-import com.axon.senzors.SensorViewModel
 
 class MainActivity : ComponentActivity() {
-    private val sensorViewModel: SensorViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels()
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission granted! The ViewModel's sensor listener
-            // will now start receiving actual data.
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
+            // Permission result handled
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setTheme(android.R.style.Theme_DeviceDefault)
 
-        requestPermissionLauncher.launch(android.Manifest.permission.BODY_SENSORS)
+        requestPermissionLauncher.launch(Manifest.permission.BODY_SENSORS)
 
         setContent {
-            WearApp(sensorViewModel)
+            WearApp(viewModel)
         }
     }
 }
 
 @Composable
-fun WearApp(sensorViewModel: SensorViewModel) {
-    val gyroscopeData by sensorViewModel.gyroscopeData.collectAsState()
-    val heartRateData by sensorViewModel.heartRateData.collectAsState()
+fun WearApp(viewModel: MainViewModel) {
+    val heartRateBpm by viewModel.heartRateBpm.collectAsState()
+    val availability by viewModel.availability.collectAsState()
+    val gyroscopeData by viewModel.gyroscopeData.collectAsState()
 
     AxonTheme {
         Column(
@@ -90,49 +80,11 @@ fun WearApp(sensorViewModel: SensorViewModel) {
                 style = MaterialTheme.typography.title3
             )
             Text(
-                text = "%.1f BPM".format(heartRateData),
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    AxonTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Gyroscope (rad/s):",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-            Text(
-                text = "X: 0.00",
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = "Y: 0.00",
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = "Z: 0.00",
-                textAlign = TextAlign.Center,
-            )
-
-            Text(
-                text = "Heart Rate:",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-            Text(
-                text = "0.0 BPM",
+                text = if (availability != null) {
+                    "%.1f BPM".format(heartRateBpm)
+                } else {
+                    "Unavailable"
+                },
                 textAlign = TextAlign.Center,
             )
         }
