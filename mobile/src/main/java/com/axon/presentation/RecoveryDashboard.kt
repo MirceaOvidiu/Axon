@@ -50,12 +50,12 @@ val textMutedDark = Color(0xFF92C9AD)
 val progressTrackColor = Color(0xFF32674d)
 
 @Composable
-fun RecoveryDashboardScreen() {
+fun RecoveryDashboardScreen(onNavigateToWatchData: () -> Unit = {}) {
     AxonTheme(darkTheme = true) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = backgroundDark,
-            bottomBar = { BottomNavigationBar() }
+            bottomBar = { BottomNavigationBar(onNavigateToWatchData = onNavigateToWatchData) }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -329,7 +329,7 @@ fun RowScope.Bar(day: String, progress: Float, isCurrentDay: Boolean) {
 }
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(onNavigateToWatchData: () -> Unit = {}) {
     NavigationBar(
         containerColor = backgroundDark.copy(alpha = 0.8f),
         tonalElevation = 0.dp,
@@ -375,9 +375,9 @@ fun BottomNavigationBar() {
         )
         NavigationBarItem(
             selected = false,
-            onClick = { /* TODO */ },
-            icon = { Icon(painterResource(R.drawable.outline_display_settings_24), contentDescription = "Settings") },
-            label = { Text("Settings") },
+            onClick = onNavigateToWatchData,
+            icon = { Icon(painterResource(R.drawable.outline_display_settings_24), contentDescription = "Watch Data") },
+            label = { Text("Watch") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = primaryColor,
                 selectedTextColor = primaryColor,
