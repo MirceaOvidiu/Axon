@@ -7,7 +7,7 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.tasks.await
 
-class WearableDataSender(private val context: Context) {
+class WearableDataSender(context: Context) {
     private val dataClient: DataClient = Wearable.getDataClient(context)
     private val nodeClient = Wearable.getNodeClient(context)
 
@@ -28,6 +28,8 @@ class WearableDataSender(private val context: Context) {
         gyroZ: Float
     ) {
         try {
+            Log.d(TAG, "▶▶▶ Preparing to send data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
+
             val putDataReq = PutDataMapRequest.create(SENSOR_DATA_PATH).apply {
                 dataMap.putDouble(KEY_HEART_RATE, heartRate)
                 dataMap.putFloat(KEY_GYRO_X, gyroX)
@@ -38,10 +40,10 @@ class WearableDataSender(private val context: Context) {
 
             putDataReq.setUrgent()
 
-            dataClient.putDataItem(putDataReq).await()
-            Log.d(TAG, "Sent sensor data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
+            val result = dataClient.putDataItem(putDataReq).await()
+            Log.d(TAG, "▶▶▶ DATA SENT SUCCESSFULLY! URI: ${result.uri}, HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to send sensor data", e)
+            Log.e(TAG, "✗✗✗ FAILED to send sensor data", e)
         }
     }
 
