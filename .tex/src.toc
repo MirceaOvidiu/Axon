@@ -1,0 +1,47 @@
+\babel@toc {romanian}{}\relax 
+\contentsline {chapter}{\numberline {1}Introducere}{3}{}%
+\contentsline {section}{\numberline {1.1}Contextul general și motivația cercetării}{3}{}%
+\contentsline {section}{\numberline {1.2}Obiectivele proiectului}{3}{}%
+\contentsline {section}{\numberline {1.3}Structura tezei}{3}{}%
+\contentsline {chapter}{\numberline {2}Recuperarea post-AVC}{4}{}%
+\contentsline {section}{\numberline {2.1}Patologia accidentului vascular cerebral}{4}{}%
+\contentsline {section}{\numberline {2.2}Mecanismul biologic al recuperării: neuroplasticitatea}{4}{}%
+\contentsline {section}{\numberline {2.3}Importanța mișcărilor repetitive}{4}{}%
+\contentsline {section}{\numberline {2.4}Limitări ale metodelor tradiționale de recuperare}{4}{}%
+\contentsline {chapter}{\numberline {3}Stadiul actual al tehnologiei de recuperare}{5}{}%
+\contentsline {section}{\numberline {3.1}Dispozitive wearable si sensori in monitorizarea sanatatii}{5}{}%
+\contentsline {section}{\numberline {3.2}Sisteme existente de reabilitare - state of the art}{5}{}%
+\contentsline {section}{\numberline {3.3}Analiza comparativa a solutiilor vs. solutia proupusa}{5}{}%
+\contentsline {chapter}{\numberline {4}Fundamentele teoretice ale analizei miscarii}{6}{}%
+\contentsline {section}{\numberline {4.1}Senzori inertiali (IMU): accelerometru si giroscop}{6}{}%
+\contentsline {section}{\numberline {4.2}Metrici de evaluare a calitatii miscarii}{6}{}%
+\contentsline {section}{\numberline {4.3}Analiza fluiditatii: Algoritmul Spectral Arc Length - SPARC}{6}{}%
+\contentsline {section}{\numberline {4.4}Analiza stabilitatii: Log Dimensionless Jerk - LDLJ}{6}{}%
+\contentsline {section}{\numberline {4.5}Recunoasterea tiparelor si corectitudinii: Dynamic Time Warping - DTW}{6}{}%
+\contentsline {section}{\numberline {4.6}Variabilitatea ritmului cardiac (HRV) si activitate electrodermala (EDA)}{6}{}%
+\contentsline {chapter}{\numberline {5}Soluția propusă}{7}{}%
+\contentsline {section}{\numberline {5.1}Prezentarea generală a ecosistemului (Diagramă High-Level)}{7}{}%
+\contentsline {section}{\numberline {5.2}Componenta Hardware: Specificații Google Pixel Watch și limitări}{7}{}%
+\contentsline {section}{\numberline {5.3}Componenta Software: Arhitectura aplicației Wear OS și Mobile}{7}{}%
+\contentsline {section}{\numberline {5.4}Arhitectura Cloud și fluxul de date (Telemetry Pipeline)}{7}{}%
+\contentsline {section}{\numberline {5.5}Interpretarea rezultatelor}{7}{}%
+\contentsline {section}{\numberline {5.6}Securitatea și confidențialitatea datelor medicale}{7}{}%
+\contentsline {chapter}{\numberline {6}Implementarea solutiei}{8}{}%
+\contentsline {section}{\numberline {6.1}Tehnologii și medii de dezvoltare utilizate (Tech Stack)}{8}{}%
+\contentsline {section}{\numberline {6.2}Achiziția și pre-procesarea datelor senzorilor (Sensor Fusion) 6.2.1. Calibrarea și filtrarea semnalelor (50Hz - 200Hz)}{8}{}%
+\contentsline {section}{\numberline {6.3}Sincronizarea datelor IMU cu cele biometrice}{8}{}%
+\contentsline {section}{\numberline {6.4}Implementarea algoritmilor de evaluare}{8}{}%
+\contentsline {section}{\numberline {6.5}Calculul scorului de fluiditate (Implementare SPARC)}{8}{}%
+\contentsline {section}{\numberline {6.6}Detectarea erorilor de execuție}{8}{}%
+\contentsline {section}{\numberline {6.7}Mecanismul de feedback haptic și vizual în timp real}{8}{}%
+\contentsline {section}{\numberline {6.8}Dezvoltarea Dashboard-ului pentru monitorizarea progresului}{8}{}%
+\contentsline {chapter}{\numberline {7}Testare, Rezultate, Studiu de caz}{9}{}%
+\contentsline {section}{\numberline {7.1}Metodologia de testare și scenariile utilizate}{9}{}%
+\contentsline {section}{\numberline {7.2}Organizarea seturilor de date experimentale}{9}{}%
+\contentsline {section}{\numberline {7.3}Analiza performanței tehnice (Latență, Consum baterie)}{9}{}%
+\contentsline {section}{\numberline {7.4}Interpretarea rezultatelor (Corelația scorului aplicației cu execuția corectă)}{9}{}%
+\contentsline {section}{\numberline {7.5}Studiu de caz: Evoluția unui set de exerciții}{9}{}%
+\contentsline {chapter}{\numberline {8}Concluzii}{10}{}%
+\contentsline {section}{\numberline {8.1}Sinteza contribuțiilor personale}{10}{}%
+\contentsline {section}{\numberline {8.2}Limitări ale sistemului actual}{10}{}%
+\contentsline {section}{\numberline {8.3}Direcții de dezvoltare ulterioară}{10}{}%

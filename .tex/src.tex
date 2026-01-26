@@ -1,0 +1,88 @@
+\documentclass[12pt, a4paper]{report}
+
+% --- Preamble: Packages for Romanian support and formatting ---
+\usepackage[utf8]{inputenc}
+\usepackage[romanian]{babel} % Sets titles like "Contents" to "Cuprins"
+\usepackage[margin=1in]{geometry}
+\usepackage{titlesec}
+
+% Optional: Set line spacing to 1.5 (common for academic papers)
+\usepackage{setspace}
+\onehalfspacing
+
+\begin{document}
+
+% --- Automatically generates the Table of Contents ---
+\tableofcontents
+\newpage
+
+% --- Chapter 1 ---
+\chapter{Introducere}
+\section{Contextul general și motivația cercetării}
+\section{Obiectivele proiectului}
+\section{Structura tezei}
+
+% --- Chapter 2 ---
+\chapter{Recuperarea post-AVC}
+\section{Patologia accidentului vascular cerebral}
+\section{Mecanismul biologic al recuperării: neuroplasticitatea}
+\section{Importanța mișcărilor repetitive}
+\section{Limitări ale metodelor tradiționale de recuperare}
+
+% --- Chapter 3 ---
+\chapter{Stadiul actual al tehnologiei de recuperare}
+\section{Dispozitive wearable si sensori in monitorizarea sanatatii}
+\section{Sisteme existente de reabilitare - state of the art}
+\section{Analiza comparativa a solutiilor vs. solutia proupusa}
+
+% --- Chapter 4 (Note: You skipped 4 in your list, LaTeX will auto-number this as 4) ---
+\chapter{Fundamentele teoretice ale analizei miscarii}
+\section{Senzori inertiali (IMU): accelerometru si giroscop}
+\section{Metrici de evaluare a calitatii miscarii}
+\section{Analiza fluiditatii: Algoritmul Spectral Arc Length - SPARC}
+\section{Analiza stabilitatii: Log Dimensionless Jerk - LDLJ}
+\section{Recunoasterea tiparelor si corectitudinii: Dynamic Time Warping - DTW}
+\section{Variabilitatea ritmului cardiac (HRV) si activitate electrodermala (EDA)}
+
+% --- Chapter 5 (Solution) ---
+\chapter{Soluția propusă}
+\section{Prezentarea generală a ecosistemului (Diagramă High-Level)}
+\section{Componenta Hardware: Specificații Google Pixel Watch și limitări}
+\section{Componenta Software: Arhitectura aplicației Wear OS și Mobile}
+\section{Arhitectura Cloud și fluxul de date (Telemetry Pipeline)}
+\section{Interpretarea rezultatelor}
+\section{Securitatea și confidențialitatea datelor medicale}
+
+
+% --- Chapter 6 ---
+\chapter{Implementarea solutiei}
+\section{Tehnologii și medii de dezvoltare utilizate (Tech Stack)}
+\section{Achiziția și pre-procesarea datelor senzorilor (Sensor Fusion) 6.2.1. Calibrarea și filtrarea semnalelor (50Hz - 200Hz)}
+\section{Sincronizarea datelor IMU cu cele biometrice}
+\section{Implementarea algoritmilor de evaluare}
+\section{Calculul scorului de fluiditate (Implementare SPARC)}
+\section{Detectarea erorilor de execuție}
+\section{Mecanismul de feedback haptic și vizual în timp real}
+\section{Dezvoltarea Dashboard-ului pentru monitorizarea progresului}
+
+% --- Chapter 7 ---
+\chapter{Testare, Rezultate, Studiu de caz}
+\section{Metodologia de testare și scenariile utilizate}
+\section{Organizarea seturilor de date experimentale}
+\section{Analiza performanței tehnice (Latență, Consum baterie)}
+\section{Interpretarea rezultatelor (Corelația scorului aplicației cu execuția corectă)}
+\section{Studiu de caz: Evoluția unui set de exerciții}
+
+% --- Chapter 8 ---
+\chapter{Concluzii}
+\section{Sinteza contribuțiilor personale}
+\section{Limitări ale sistemului actual}
+\section{Direcții de dezvoltare ulterioară}
+
+% --- Bibliography ---
+\begin{thebibliography}{99}
+\bibitem{example1} 
+Author Name, \textit{Book Title}, Publisher, Year.
+\end{thebibliography}
+
+\end{document}

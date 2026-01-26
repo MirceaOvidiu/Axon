@@ -8,14 +8,18 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.axon.data.WearableDataSender
 import com.axon.senzors.HealthServicesManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application), SensorEventListener {
     private val healthServicesManager = HealthServicesManager(application)
     private val sensorManager: SensorManager =
         application.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val wearableDataSender = WearableDataSender(application)
 
     val heartRateBpm = healthServicesManager.heartRateBpm
     val availability = healthServicesManager.availability
@@ -27,9 +31,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
         sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     }
 
+    private var lastSendTime = 0L
+    private val sendInterval = 500L // Send data every 500ms
+
+    private var lastUiUpdate = 0L
+    private val uiUpdateInterval = 50L // Update UI every 50ms (20 FPS)
+
     init {
         healthServicesManager.registerForHeartRateData()
         startGyroscope()
+
+        // Start monitoring data changes to send to phone
+        viewModelScope.launch {
+            heartRateBpm.collect { heartRate ->
+                sendDataToPhone(heartRate)
+            }
+        }
     }
 
     private fun startGyroscope() {
@@ -47,8 +64,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
         event ?: return
         when (event.sensor.type) {
             Sensor.TYPE_GYROSCOPE -> {
-                _gyroscopeData.value = event.values.clone()
+                val currentTime = System.currentTimeMillis()
+
+                // Throttle UI updates to prevent excessive recomposition
+                if (currentTime - lastUiUpdate > uiUpdateInterval) {
+                    _gyroscopeData.value = event.values.clone()
+                    lastUiUpdate = currentTime
+                }
+
+                // Send data to phone periodically
+                if (currentTime - lastSendTime > sendInterval) {
+                    sendDataToPhone(heartRateBpm.value)
+                    lastSendTime = currentTime
+                }
             }
+        }
+    }
+
+    private fun sendDataToPhone(heartRate: Double) {
+        val gyro = _gyroscopeData.value
+        Log.d("MainViewModel", "▶ Triggering send to phone: HR=$heartRate, Gyro=(${gyro[0]}, ${gyro[1]}, ${gyro[2]})")
+        viewModelScope.launch {
+            wearableDataSender.sendSensorData(
+                heartRate = heartRate,
+                gyroX = gyro[0],
+                gyroY = gyro[1],
+                gyroZ = gyro[2]
+            )
         }
     }
 
