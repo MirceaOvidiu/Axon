@@ -1,15 +1,10 @@
 package com.axon.presentation.screens.sessions
 
 import android.app.Application
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.axon.data.DataLayerListenerService
+import com.axon.data.DataLayerEvents
 import com.axon.data.SessionRepository
 import com.axon.data.SessionStats
 import com.axon.models.RecordingSession
@@ -49,22 +44,14 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Listen for new sessions received from watch
-    private val sessionReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == DataLayerListenerService.ACTION_SESSION_RECEIVED) {
-                val sessionId = intent.getLongExtra(DataLayerListenerService.EXTRA_SESSION_ID, -1)
-                val dataPointCount = intent.getIntExtra(DataLayerListenerService.EXTRA_DATA_POINT_COUNT, 0)
-                Log.d(TAG, "Received session broadcast: sessionId=$sessionId, dataPoints=$dataPointCount")
+    init {
+        // Listen for new sessions received from watch via SharedFlow
+        viewModelScope.launch {
+            DataLayerEvents.sessionReceivedEvents.collect { event ->
+                Log.d(TAG, "Received session event: sessionId=${event.sessionId}, dataPoints=${event.dataPointCount}")
                 // The Flow will automatically update when new data is added to the database
             }
         }
-    }
-
-    init {
-        // Register for session received broadcasts
-        val intentFilter = IntentFilter(DataLayerListenerService.ACTION_SESSION_RECEIVED)
-        LocalBroadcastManager.getInstance(application).registerReceiver(sessionReceiver, intentFilter)
     }
 
     fun loadSessionDetails(sessionId: Long) {
@@ -98,10 +85,5 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
         _selectedSession.value = null
         _selectedSessionData.value = emptyList()
         _selectedSessionStats.value = null
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        LocalBroadcastManager.getInstance(getApplication()).unregisterReceiver(sessionReceiver)
     }
 }

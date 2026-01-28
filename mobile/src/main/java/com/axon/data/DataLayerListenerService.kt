@@ -1,8 +1,6 @@
 package com.axon.data
 
-import android.content.Intent
 import android.util.Log
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.axon.models.SessionTransferData
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -24,14 +22,6 @@ class DataLayerListenerService : WearableListenerService() {
         private const val TAG = "DataLayerListener"
         const val SENSOR_DATA_PATH = "/sensor_data"
         const val SESSION_DATA_PATH = "/session_data"
-        const val ACTION_DATA_RECEIVED = "com.axon.data.DATA_RECEIVED"
-        const val ACTION_SESSION_RECEIVED = "com.axon.data.SESSION_RECEIVED"
-        const val EXTRA_HEART_RATE = "extra_heart_rate"
-        const val EXTRA_GYRO_X = "extra_gyro_x"
-        const val EXTRA_GYRO_Y = "extra_gyro_y"
-        const val EXTRA_GYRO_Z = "extra_gyro_z"
-        const val EXTRA_SESSION_ID = "extra_session_id"
-        const val EXTRA_DATA_POINT_COUNT = "extra_data_point_count"
     }
 
     override fun onCreate() {
@@ -58,15 +48,9 @@ class DataLayerListenerService : WearableListenerService() {
 
                                 Log.d(TAG, "✓✓✓ DATA RECEIVED from watch: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
 
-                                // Broadcast the data to the app
-                                val intent = Intent(ACTION_DATA_RECEIVED).apply {
-                                    putExtra(EXTRA_HEART_RATE, heartRate)
-                                    putExtra(EXTRA_GYRO_X, gyroX)
-                                    putExtra(EXTRA_GYRO_Y, gyroY)
-                                    putExtra(EXTRA_GYRO_Z, gyroZ)
-                                }
-                                val sent = LocalBroadcastManager.getInstance(this@DataLayerListenerService).sendBroadcast(intent)
-                                Log.d(TAG, "✓✓✓ Broadcast sent to app: $sent")
+                                // Emit event via SharedFlow
+                                DataLayerEvents.emitSensorData(heartRate, gyroX, gyroY, gyroZ)
+                                Log.d(TAG, "✓✓✓ Event emitted to app")
                             }
                         } else {
                             Log.w(TAG, "Path does not match SENSOR_DATA_PATH: $path")
@@ -107,12 +91,8 @@ class DataLayerListenerService : WearableListenerService() {
                 // Save to database
                 sessionRepository.saveSessionFromWatch(sessionData)
 
-                // Broadcast to notify UI
-                val intent = Intent(ACTION_SESSION_RECEIVED).apply {
-                    putExtra(EXTRA_SESSION_ID, sessionData.sessionId)
-                    putExtra(EXTRA_DATA_POINT_COUNT, sessionData.sensorReadings.size)
-                }
-                LocalBroadcastManager.getInstance(this@DataLayerListenerService).sendBroadcast(intent)
+                // Emit event via SharedFlow
+                DataLayerEvents.emitSessionReceived(sessionData.sessionId, sessionData.sensorReadings.size)
 
                 Log.d(TAG, "✓✓✓ SESSION SAVED: ${sessionData.sessionId} with ${sessionData.sensorReadings.size} readings")
             } catch (e: Exception) {
