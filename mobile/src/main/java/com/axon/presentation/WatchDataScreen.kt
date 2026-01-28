@@ -60,7 +60,7 @@ fun WatchDataScreen(
                     onNavigateBack = onNavigateBack
                 )
             },
-            bottomBar = { BottomNavigationBar(onNavigateToWatchData = onNavigateBack) }
+            bottomBar = { BottomNavigationBar(onNavigateToWatchData = {}, onNavigateToSessions = {}) }
         ) { innerPadding ->
             Column(
                 modifier = Modifier

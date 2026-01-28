@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -61,6 +62,19 @@ dependencies {
     implementation(libs.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
+
+    // Room Database
+    val room_version = "2.8.4"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:2.5.0")
+    // Gson for JSON serialization
+    implementation(libs.gson)
+
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)

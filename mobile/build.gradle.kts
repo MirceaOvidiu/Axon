@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -60,6 +60,20 @@ dependencies {
     implementation(libs.androidx.tiles.material)
     implementation(libs.androidx.protolayout.material)
     
+    // Room Database
+    val room_version = "2.8.4"
+
+    implementation("androidx.room:room-runtime:$room_version")
+
+    // Gson for JSON serialization
+    implementation(libs.gson)
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.6")
+
+    // Lifecycle runtime compose
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
