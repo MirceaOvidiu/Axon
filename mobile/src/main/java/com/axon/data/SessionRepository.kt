@@ -78,7 +78,6 @@ class SessionRepository(context: Context) {
             avgHeartRate = sessionDao.getAverageHeartRate(sessionId),
             maxHeartRate = sessionDao.getMaxHeartRate(sessionId),
             minHeartRate = sessionDao.getMinHeartRate(sessionId),
-            avgSkinTemperature = sessionDao.getAverageSkinTemperature(sessionId),
             dataPointCount = sessionDao.getSensorDataCount(sessionId)
         )
     }
@@ -94,6 +93,5 @@ data class SessionStats(
     val avgHeartRate: Double?,
     val maxHeartRate: Double?,
     val minHeartRate: Double?,
-    val avgSkinTemperature: Double?,
     val dataPointCount: Int
 )

@@ -40,9 +40,6 @@ class WearableDataService(private val context: Context) {
     private val _gyroscopeZ = MutableStateFlow(0f)
     val gyroscopeZ: StateFlow<Float> = _gyroscopeZ.asStateFlow()
 
-    private val _skinTemperature = MutableStateFlow<Double?>(null)
-    val skinTemperature: StateFlow<Double?> = _skinTemperature.asStateFlow()
-
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
@@ -50,20 +47,16 @@ class WearableDataService(private val context: Context) {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == DataLayerListenerService.ACTION_DATA_RECEIVED) {
                 val heartRate = intent.getDoubleExtra(DataLayerListenerService.EXTRA_HEART_RATE, 0.0)
-                val skinTemp = if (intent.hasExtra(DataLayerListenerService.EXTRA_SKIN_TEMPERATURE)) {
-                    intent.getDoubleExtra(DataLayerListenerService.EXTRA_SKIN_TEMPERATURE, 0.0)
-                } else null
                 val gyroX = intent.getFloatExtra(DataLayerListenerService.EXTRA_GYRO_X, 0f)
                 val gyroY = intent.getFloatExtra(DataLayerListenerService.EXTRA_GYRO_Y, 0f)
                 val gyroZ = intent.getFloatExtra(DataLayerListenerService.EXTRA_GYRO_Z, 0f)
-                Log.d("WearableDataService", "Received data: HR=$heartRate, Temp=$skinTemp, Gyro=($gyroX, $gyroY, $gyroZ)")
+                Log.d("WearableDataService", "Received data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
 
                 _heartRateBpm.value = heartRate
-                _skinTemperature.value = skinTemp
                 _gyroscopeX.value = gyroX
                 _gyroscopeY.value = gyroY
                 _gyroscopeZ.value = gyroZ
-                Log.d(TAG, "BroadcastReceiver updated data: HR=$heartRate, Temp=$skinTemp, Gyro=($gyroX, $gyroY, $gyroZ)")
+                Log.d(TAG, "BroadcastReceiver updated data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
             }
         }
     }

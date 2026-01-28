@@ -11,7 +11,6 @@ class SensorDataViewModel(application: Application) : AndroidViewModel(applicati
     private val wearableDataService = WearableDataService(application)
 
     val heartRateBpm: StateFlow<Double> = wearableDataService.heartRateBpm
-    val skinTemperature: StateFlow<Double?> = wearableDataService.skinTemperature
     val gyroscopeX: StateFlow<Float> = wearableDataService.gyroscopeX
     val gyroscopeY: StateFlow<Float> = wearableDataService.gyroscopeY
     val gyroscopeZ: StateFlow<Float> = wearableDataService.gyroscopeZ

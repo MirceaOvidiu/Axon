@@ -145,19 +145,11 @@ fun SessionDetailScreen(
                             color = Color(0xFFFF6B6B)
                         )
 
-                        // Skin temperature chart
-                        val tempData = sensorData.mapNotNull { it.skinTemperature?.toFloat() }
-                        if (tempData.isNotEmpty()) {
-                            ChartCard(
-                                title = "Skin Temperature",
-                                unit = "°C",
-                                data = tempData,
-                                color = Color(0xFFFFA94D)
-                            )
-                        }
-
                         // Gyroscope chart
                         GyroscopeChartCard(sensorData = sensorData)
+
+                        // Raw data table
+                        RawDataTableCard(sensorData = sensorData)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -166,6 +158,7 @@ fun SessionDetailScreen(
         }
     }
 }
+
 
 @Composable
 fun SessionInfoCard(
@@ -296,21 +289,6 @@ fun StatsCard(stats: com.axon.data.SessionStats) {
                     unit = "BPM",
                     color = Color(0xFFFF6B6B)
                 )
-            }
-
-            stats.avgSkinTemperature?.let { temp ->
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    StatItem(
-                        label = "Avg Skin Temp",
-                        value = "%.1f".format(temp),
-                        unit = "°C",
-                        color = Color(0xFFFFA94D)
-                    )
-                }
             }
         }
     }
@@ -552,3 +530,113 @@ private fun formatDuration(millis: Long): String {
         "%ds".format(seconds)
     }
 }
+
+@Composable
+fun RawDataTableCard(sensorData: List<SensorData>) {
+    val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = cardDark)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Raw Sensor Data (${sensorData.size} readings)",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            // Table header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF2A2A2A), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TableHeaderCell(text = "Time", modifier = Modifier.weight(1.2f))
+                TableHeaderCell(text = "HR", modifier = Modifier.weight(0.7f))
+                TableHeaderCell(text = "Gyro X", modifier = Modifier.weight(1f))
+                TableHeaderCell(text = "Gyro Y", modifier = Modifier.weight(1f))
+                TableHeaderCell(text = "Gyro Z", modifier = Modifier.weight(1f))
+            }
+
+            // Table rows - show last 50 readings to avoid performance issues
+            val displayData = sensorData.takeLast(50)
+            displayData.forEachIndexed { index, data ->
+                val bgColor = if (index % 2 == 0) Color(0xFF1E1E1E) else Color(0xFF252525)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(bgColor)
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TableCell(
+                        text = timeFormat.format(Date(data.timestamp)),
+                        modifier = Modifier.weight(1.2f)
+                    )
+                    TableCell(
+                        text = data.heartRate?.let { "%.0f".format(it) } ?: "--",
+                        modifier = Modifier.weight(0.7f),
+                        color = if (data.heartRate != null) Color(0xFFFF6B6B) else textMutedDark
+                    )
+                    TableCell(
+                        text = data.gyroX?.let { "%.2f".format(it) } ?: "--",
+                        modifier = Modifier.weight(1f)
+                    )
+                    TableCell(
+                        text = data.gyroY?.let { "%.2f".format(it) } ?: "--",
+                        modifier = Modifier.weight(1f)
+                    )
+                    TableCell(
+                        text = data.gyroZ?.let { "%.2f".format(it) } ?: "--",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            if (sensorData.size > 50) {
+                Text(
+                    text = "Showing last 50 of ${sensorData.size} readings",
+                    color = textMutedDark,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TableHeaderCell(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        color = primaryColor,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun TableCell(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color.White
+) {
+    Text(
+        text = text,
+        color = color,
+        fontSize = 10.sp,
+        modifier = modifier
+    )
+}
+

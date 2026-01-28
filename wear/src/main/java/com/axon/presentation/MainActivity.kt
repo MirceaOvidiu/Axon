@@ -22,6 +22,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,11 +69,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp(viewModel: MainViewModel) {
+    var showRawData by remember { mutableStateOf(false) }
+
     val heartRateBpm by viewModel.heartRateBpm.collectAsState()
     val availability by viewModel.availability.collectAsState()
     val gyroscopeData by viewModel.gyroscopeData.collectAsState()
-    val skinTemperature by viewModel.skinTemperature.collectAsState()
-    val skinTempAvailable by viewModel.skinTemperatureAvailable.collectAsState()
 
     // Recording state
     val isRecording by viewModel.isRecording.collectAsState()
@@ -80,22 +83,62 @@ fun WearApp(viewModel: MainViewModel) {
     val lastSyncResult by viewModel.lastSyncResult.collectAsState()
 
     AxonTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background)
-                .verticalScroll(rememberScrollState())
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Recording Control Button
-            RecordingButton(
-                isRecording = isRecording,
-                isSyncing = isSyncing,
-                onStartRecording = { viewModel.startRecording() },
-                onStopRecording = { viewModel.stopRecording() }
+        if (showRawData) {
+            RawDataScreen(
+                heartRateBpm = heartRateBpm,
+                gyroscopeData = gyroscopeData,
+                onBack = { showRawData = false }
             )
+        } else {
+            MainScreen(
+                heartRateBpm = heartRateBpm,
+                availability = availability,
+                gyroscopeData = gyroscopeData,
+                isRecording = isRecording,
+                recordingDuration = recordingDuration,
+                dataPointsRecorded = dataPointsRecorded,
+                isSyncing = isSyncing,
+                lastSyncResult = lastSyncResult,
+                onStartRecording = { viewModel.startRecording() },
+                onStopRecording = { viewModel.stopRecording() },
+                onSyncAll = { viewModel.syncAllUnsyncedSessions() },
+                onShowRawData = { showRawData = true }
+            )
+        }
+    }
+}
+
+@Composable
+fun MainScreen(
+    heartRateBpm: Double,
+    availability: androidx.health.services.client.data.Availability?,
+    gyroscopeData: FloatArray,
+    isRecording: Boolean,
+    recordingDuration: Long,
+    dataPointsRecorded: Int,
+    isSyncing: Boolean,
+    lastSyncResult: String?,
+    onStartRecording: () -> Unit,
+    onStopRecording: () -> Unit,
+    onSyncAll: () -> Unit,
+    onShowRawData: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background)
+            .verticalScroll(rememberScrollState())
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Recording Control Button
+        RecordingButton(
+            isRecording = isRecording,
+            isSyncing = isSyncing,
+            onStartRecording = onStartRecording,
+            onStopRecording = onStopRecording
+        )
 
             // Recording Status
             if (isRecording) {
@@ -155,20 +198,6 @@ fun WearApp(viewModel: MainViewModel) {
                 textAlign = TextAlign.Center,
             )
 
-            // Skin Temperature
-            Text(
-                text = "Skin Temp:",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-            Text(
-                text = if (skinTempAvailable && skinTemperature != null) {
-                    "%.1f°C".format(skinTemperature)
-                } else {
-                    "N/A"
-                },
-                textAlign = TextAlign.Center,
-            )
 
             // Gyroscope
             Text(
@@ -191,16 +220,26 @@ fun WearApp(viewModel: MainViewModel) {
             // Manual sync button
             if (!isRecording && !isSyncing) {
                 Button(
-                    onClick = { viewModel.syncAllUnsyncedSessions() },
+                    onClick = onSyncAll,
                     modifier = Modifier.fillMaxWidth(0.8f),
                     colors = ButtonDefaults.secondaryButtonColors()
                 ) {
                     Text("Sync All")
                 }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Raw Data button
+                Button(
+                    onClick = onShowRawData,
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    colors = ButtonDefaults.secondaryButtonColors()
+                ) {
+                    Text("Raw Data")
+                }
             }
         }
     }
-}
 
 @Composable
 fun RecordingButton(
@@ -236,5 +275,96 @@ fun formatDuration(millis: Long): String {
         "%d:%02d:%02d".format(hours, minutes, seconds)
     } else {
         "%02d:%02d".format(minutes, seconds)
+    }
+}
+
+@Composable
+fun RawDataScreen(
+    heartRateBpm: Double,
+    gyroscopeData: FloatArray,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background)
+            .verticalScroll(rememberScrollState())
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Raw Sensor Data",
+            style = MaterialTheme.typography.title3,
+            textAlign = TextAlign.Center,
+            color = Color.Cyan
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Heart Rate Raw Value
+        RawDataRow(label = "Heart Rate", value = "%.2f".format(heartRateBpm), unit = "BPM")
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Gyroscope Raw Values
+        Text(
+            text = "Gyroscope (rad/s)",
+            style = MaterialTheme.typography.caption1,
+            color = Color.Yellow
+        )
+        RawDataRow(label = "X", value = "%.4f".format(gyroscopeData[0]), unit = "")
+        RawDataRow(label = "Y", value = "%.4f".format(gyroscopeData[1]), unit = "")
+        RawDataRow(label = "Z", value = "%.4f".format(gyroscopeData[2]), unit = "")
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Gyroscope magnitude
+        val magnitude = kotlin.math.sqrt(
+            gyroscopeData[0] * gyroscopeData[0] +
+            gyroscopeData[1] * gyroscopeData[1] +
+            gyroscopeData[2] * gyroscopeData[2]
+        )
+        RawDataRow(label = "Magnitude", value = "%.4f".format(magnitude), unit = "")
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Timestamp
+        Text(
+            text = "Updated: ${java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(java.util.Date())}",
+            style = MaterialTheme.typography.caption2,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Back button
+        Button(
+            onClick = onBack,
+            modifier = Modifier.fillMaxWidth(0.8f),
+            colors = ButtonDefaults.secondaryButtonColors()
+        ) {
+            Text("Back")
+        }
+    }
+}
+
+@Composable
+fun RawDataRow(label: String, value: String, unit: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.caption2,
+            color = Color.LightGray
+        )
+        Text(
+            text = if (unit.isNotEmpty()) "$value $unit" else value,
+            style = MaterialTheme.typography.caption1,
+            color = Color.White
+        )
     }
 }

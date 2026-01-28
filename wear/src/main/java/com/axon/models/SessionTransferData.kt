@@ -14,7 +14,6 @@ data class SessionTransferData(
 data class SensorReading(
     val timestamp: Long,
     val heartRate: Double?,
-    val skinTemperature: Double?,
     val gyroX: Float?,
     val gyroY: Float?,
     val gyroZ: Float?
@@ -26,7 +25,6 @@ data class SensorReading(
 fun SensorData.toSensorReading() = SensorReading(
     timestamp = timestamp,
     heartRate = heartRate,
-    skinTemperature = skinTemperature,
     gyroX = gyroX,
     gyroY = gyroY,
     gyroZ = gyroZ

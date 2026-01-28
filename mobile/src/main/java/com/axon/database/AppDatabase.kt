@@ -9,7 +9,7 @@ import com.axon.models.SensorData
 
 @Database(
     entities = [SensorData::class, RecordingSession::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,7 +25,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "axon_mobile_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration(true)
+                    .build()
                 INSTANCE = instance
                 instance
             }

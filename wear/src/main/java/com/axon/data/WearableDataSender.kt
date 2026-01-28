@@ -21,7 +21,6 @@ class WearableDataSender(context: Context) {
         const val SENSOR_DATA_PATH = "/sensor_data"
         const val SESSION_DATA_PATH = "/session_data"
         const val KEY_HEART_RATE = "heart_rate"
-        const val KEY_SKIN_TEMPERATURE = "skin_temperature"
         const val KEY_GYRO_X = "gyro_x"
         const val KEY_GYRO_Y = "gyro_y"
         const val KEY_GYRO_Z = "gyro_z"
@@ -31,17 +30,15 @@ class WearableDataSender(context: Context) {
 
     suspend fun sendSensorData(
         heartRate: Double,
-        skinTemperature: Double?,
         gyroX: Float,
         gyroY: Float,
         gyroZ: Float
     ) {
         try {
-            Log.d(TAG, "▶▶▶ Preparing to send data: HR=$heartRate, Temp=$skinTemperature, Gyro=($gyroX, $gyroY, $gyroZ)")
+            Log.d(TAG, "▶▶▶ Preparing to send data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
 
             val putDataReq = PutDataMapRequest.create(SENSOR_DATA_PATH).apply {
                 dataMap.putDouble(KEY_HEART_RATE, heartRate)
-                skinTemperature?.let { dataMap.putDouble(KEY_SKIN_TEMPERATURE, it) }
                 dataMap.putFloat(KEY_GYRO_X, gyroX)
                 dataMap.putFloat(KEY_GYRO_Y, gyroY)
                 dataMap.putFloat(KEY_GYRO_Z, gyroZ)

@@ -27,8 +27,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
 
     val heartRateBpm = healthServicesManager.heartRateBpm
     val availability = healthServicesManager.availability
-    val skinTemperature = healthServicesManager.skinTemperature
-    val skinTemperatureAvailable = healthServicesManager.skinTemperatureAvailable
 
     private val _gyroscopeData = MutableStateFlow(floatArrayOf(0f, 0f, 0f))
     val gyroscopeData = _gyroscopeData.asStateFlow()
@@ -68,7 +66,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
 
     init {
         healthServicesManager.registerForHeartRateData()
-        healthServicesManager.startSkinTemperatureMonitoring()
         startGyroscope()
 
         // Check for any active session from previous app instance
@@ -182,7 +179,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
                     recordingRepository.saveSensorData(
                         sessionId = sessionId,
                         heartRate = heartRateBpm.value.takeIf { it > 0 },
-                        skinTemperature = skinTemperature.value,
                         gyroX = gyro[0],
                         gyroY = gyro[1],
                         gyroZ = gyro[2]
@@ -257,7 +253,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
         viewModelScope.launch {
             wearableDataSender.sendSensorData(
                 heartRate = heartRate,
-                skinTemperature = skinTemperature.value,
                 gyroX = gyro[0],
                 gyroY = gyro[1],
                 gyroZ = gyro[2]
@@ -272,7 +267,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
     override fun onCleared() {
         super.onCleared()
         healthServicesManager.unregisterForHeartRateData()
-        healthServicesManager.stopSkinTemperatureMonitoring()
         stopGyroscope()
         durationUpdateJob?.cancel()
         recordingJob?.cancel()

@@ -27,7 +27,6 @@ class DataLayerListenerService : WearableListenerService() {
         const val ACTION_DATA_RECEIVED = "com.axon.data.DATA_RECEIVED"
         const val ACTION_SESSION_RECEIVED = "com.axon.data.SESSION_RECEIVED"
         const val EXTRA_HEART_RATE = "extra_heart_rate"
-        const val EXTRA_SKIN_TEMPERATURE = "extra_skin_temperature"
         const val EXTRA_GYRO_X = "extra_gyro_x"
         const val EXTRA_GYRO_Y = "extra_gyro_y"
         const val EXTRA_GYRO_Z = "extra_gyro_z"
@@ -53,17 +52,15 @@ class DataLayerListenerService : WearableListenerService() {
                         if (path?.startsWith(SENSOR_DATA_PATH) == true) {
                             DataMapItem.fromDataItem(item).dataMap.apply {
                                 val heartRate = getDouble("heart_rate", 0.0)
-                                val skinTemp = if (containsKey("skin_temperature")) getDouble("skin_temperature", 0.0) else null
                                 val gyroX = getFloat("gyro_x", 0f)
                                 val gyroY = getFloat("gyro_y", 0f)
                                 val gyroZ = getFloat("gyro_z", 0f)
 
-                                Log.d(TAG, "✓✓✓ DATA RECEIVED from watch: HR=$heartRate, Temp=$skinTemp, Gyro=($gyroX, $gyroY, $gyroZ)")
+                                Log.d(TAG, "✓✓✓ DATA RECEIVED from watch: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
 
                                 // Broadcast the data to the app
                                 val intent = Intent(ACTION_DATA_RECEIVED).apply {
                                     putExtra(EXTRA_HEART_RATE, heartRate)
-                                    skinTemp?.let { putExtra(EXTRA_SKIN_TEMPERATURE, it) }
                                     putExtra(EXTRA_GYRO_X, gyroX)
                                     putExtra(EXTRA_GYRO_Y, gyroY)
                                     putExtra(EXTRA_GYRO_Z, gyroZ)

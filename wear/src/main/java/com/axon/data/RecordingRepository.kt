@@ -54,7 +54,6 @@ class RecordingRepository(context: Context) {
     suspend fun saveSensorData(
         sessionId: Long,
         heartRate: Double?,
-        skinTemperature: Double?,
         gyroX: Float?,
         gyroY: Float?,
         gyroZ: Float?
@@ -63,7 +62,6 @@ class RecordingRepository(context: Context) {
             sessionId = sessionId,
             timestamp = System.currentTimeMillis(),
             heartRate = heartRate,
-            skinTemperature = skinTemperature,
             gyroX = gyroX,
             gyroY = gyroY,
             gyroZ = gyroZ

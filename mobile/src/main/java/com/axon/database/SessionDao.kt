@@ -54,7 +54,4 @@ interface SessionDao {
 
     @Query("SELECT MIN(heartRate) FROM sensor_data WHERE sessionId = :sessionId AND heartRate IS NOT NULL")
     suspend fun getMinHeartRate(sessionId: Long): Double?
-
-    @Query("SELECT AVG(skinTemperature) FROM sensor_data WHERE sessionId = :sessionId AND skinTemperature IS NOT NULL")
-    suspend fun getAverageSkinTemperature(sessionId: Long): Double?
 }

@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -36,7 +36,6 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    useLibrary("wear-sdk")
     buildFeatures {
         compose = true
     }
@@ -64,10 +63,9 @@ dependencies {
     implementation(libs.androidx.watchface.complications.data.source.ktx)
 
     // Room Database
-    val room_version = "2.8.4"
-
-    implementation("androidx.room:room-runtime:$room_version")
-    ksp("androidx.room:room-compiler:2.5.0")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     // Gson for JSON serialization
     implementation(libs.gson)
 
