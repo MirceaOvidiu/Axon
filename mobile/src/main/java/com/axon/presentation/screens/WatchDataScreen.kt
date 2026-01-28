@@ -48,6 +48,7 @@ fun WatchDataScreen(
     onNavigateBack: () -> Unit = {},
 ) {
     val isConnected by viewModel.isConnected.collectAsState()
+    val modelName by viewModel.connectedModelName.collectAsState()
 
     AxonTheme(darkTheme = true) {
         Scaffold(
@@ -70,7 +71,7 @@ fun WatchDataScreen(
                         .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                ConnectionStatusCard(isConnected = isConnected)
+                ConnectionStatusCard(isConnected = isConnected, modelName = modelName)
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -91,12 +92,6 @@ fun WatchDataTopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_health_and_safety_24),
-                    contentDescription = "Watch Data",
-                    tint = primaryColor,
-                    modifier = Modifier.size(28.dp),
-                )
                 Text(
                     text = "Watch Data",
                     color = Color.White,
@@ -131,7 +126,10 @@ fun WatchDataTopBar(
 }
 
 @Composable
-fun ConnectionStatusCard(isConnected: Boolean) {
+fun ConnectionStatusCard(
+    isConnected: Boolean,
+    modelName: String?,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -167,7 +165,7 @@ fun ConnectionStatusCard(isConnected: Boolean) {
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text = if (isConnected) "Connected" else "Disconnected",
+                        text = if (isConnected) "${modelName ?: "Wear OS"} connected" else "Disconnected",
                         color = textMutedDark,
                         fontSize = 14.sp,
                     )

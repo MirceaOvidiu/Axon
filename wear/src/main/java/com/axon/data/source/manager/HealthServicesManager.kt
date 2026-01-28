@@ -1,4 +1,4 @@
-package com.axon.senzors
+package com.axon.data.source.manager
 
 import android.content.Context
 import android.util.Log
@@ -12,7 +12,9 @@ import androidx.health.services.client.unregisterMeasureCallback
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class HealthServicesManager(context: Context) {
+class HealthServicesManager(
+    context: Context,
+) {
     private val healthServicesClient = HealthServices.getClient(context)
     private val measureClient = healthServicesClient.measureClient
 
@@ -22,24 +24,24 @@ class HealthServicesManager(context: Context) {
     private val _availability = MutableStateFlow<Availability?>(null)
     val availability: StateFlow<Availability?> = _availability
 
-    private val measureCallback = object : MeasureCallback {
-        override fun onAvailabilityChanged(
-            dataType: DeltaDataType<*, *>,
-            availability: Availability
-        ) {
-            _availability.value = availability
-            Log.d("HealthServicesManager", "Availability changed: $availability")
-        }
+    private val measureCallback =
+        object : MeasureCallback {
+            override fun onAvailabilityChanged(
+                dataType: DeltaDataType<*, *>,
+                availability: Availability,
+            ) {
+                _availability.value = availability
+                Log.d("HealthServicesManager", "Availability changed: $availability")
+            }
 
-        override fun onDataReceived(data: DataPointContainer) {
-            val heartRateData = data.getData(DataType.HEART_RATE_BPM)
-            if (heartRateData.isNotEmpty()) {
-                _heartRateBpm.value = heartRateData.last().value
-                Log.d("HealthServicesManager", "Heart rate: ${heartRateData.last().value}")
+            override fun onDataReceived(data: DataPointContainer) {
+                val heartRateData = data.getData(DataType.HEART_RATE_BPM)
+                if (heartRateData.isNotEmpty()) {
+                    _heartRateBpm.value = heartRateData.last().value
+                    Log.d("HealthServicesManager", "Heart rate: ${heartRateData.last().value}")
+                }
             }
         }
-    }
-
 
     fun registerForHeartRateData() {
         Log.d("HealthServicesManager", "Registering for heart rate data")
@@ -48,6 +50,6 @@ class HealthServicesManager(context: Context) {
 
     suspend fun unregisterForHeartRateData() {
         Log.d("HealthServicesManager", "Unregistering for heart rate data")
-        measureClient.unregisterMeasureCallback(DataType.HEART_RATE_BPM, measureCallback)
+        measureClient.unregisterMeasureCallback(DataType.Companion.HEART_RATE_BPM, measureCallback)
     }
 }

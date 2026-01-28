@@ -1,11 +1,11 @@
-package com.axon.database
+package com.axon.data.source.database
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.axon.models.RecordingSession
-import com.axon.models.SensorData
+import com.axon.domain.entity.RecordingSession
+import com.axon.domain.entity.SensorData
 
 @Dao
 interface SensorDao {
@@ -33,10 +33,16 @@ interface SensorDao {
     suspend fun getUnsyncedCompletedSessions(): List<RecordingSession>
 
     @Query("UPDATE recording_sessions SET isSynced = 1, syncedAt = :syncedAt WHERE id = :sessionId")
-    suspend fun markSessionAsSynced(sessionId: Long, syncedAt: Long)
+    suspend fun markSessionAsSynced(
+        sessionId: Long,
+        syncedAt: Long,
+    )
 
     @Query("UPDATE recording_sessions SET isActive = 0, endTime = :endTime WHERE id = :sessionId")
-    suspend fun endSession(sessionId: Long, endTime: Long)
+    suspend fun endSession(
+        sessionId: Long,
+        endTime: Long,
+    )
 
     @Query("SELECT COUNT(*) FROM sensor_data WHERE sessionId = :sessionId")
     suspend fun getSensorDataCount(sessionId: Long): Int

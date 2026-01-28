@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.main
 
 import android.Manifest
 import android.os.Build
@@ -36,8 +36,10 @@ import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.axon.presentation.theme.AxonTheme
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
@@ -53,7 +55,6 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Request body sensors permission
         requestPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.BODY_SENSORS,
@@ -69,47 +70,20 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp(viewModel: MainViewModel) {
-    val heartRateBpm by viewModel.heartRateBpm.collectAsState()
-    val availability by viewModel.availability.collectAsState()
-    val gyroscopeData by viewModel.gyroscopeData.collectAsState()
-
-    // Recording state
-    val isRecording by viewModel.isRecording.collectAsState()
-    val recordingDuration by viewModel.recordingDuration.collectAsState()
-    val dataPointsRecorded by viewModel.dataPointsRecorded.collectAsState()
-    val isSyncing by viewModel.isSyncing.collectAsState()
-    val lastSyncResult by viewModel.lastSyncResult.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     AxonTheme {
         MainScreen(
-            heartRateBpm = heartRateBpm,
-            availability = availability,
-            gyroscopeData = gyroscopeData,
-            isRecording = isRecording,
-            recordingDuration = recordingDuration,
-            dataPointsRecorded = dataPointsRecorded,
-            isSyncing = isSyncing,
-            lastSyncResult = lastSyncResult,
-            onStartRecording = { viewModel.startRecording() },
-            onStopRecording = { viewModel.stopRecording() },
-            onSyncAll = { viewModel.syncAllUnsyncedSessions() },
+            uiState = uiState,
+            onIntent = viewModel::onIntent,
         )
     }
 }
 
 @Composable
 fun MainScreen(
-    heartRateBpm: Double,
-    availability: androidx.health.services.client.data.Availability?,
-    gyroscopeData: FloatArray,
-    isRecording: Boolean,
-    recordingDuration: Long,
-    dataPointsRecorded: Int,
-    isSyncing: Boolean,
-    lastSyncResult: String?,
-    onStartRecording: () -> Unit,
-    onStopRecording: () -> Unit,
-    onSyncAll: () -> Unit,
+    uiState: MainUiState,
+    onIntent: (MainIntent) -> Unit,
 ) {
     Column(
         modifier =
@@ -123,28 +97,29 @@ fun MainScreen(
     ) {
         // Recording Control Button
         RecordingButton(
-            isRecording = isRecording,
-            isSyncing = isSyncing,
-            onStartRecording = onStartRecording,
-            onStopRecording = onStopRecording,
+            isRecording = uiState.isRecording,
+            isSyncing = uiState.isSyncing,
+            onStartRecording = { onIntent(MainIntent.StartRecording) },
+            onStopRecording = { onIntent(MainIntent.StopRecording) },
         )
 
         // Recording Status
-        if (isRecording) {
+        if (uiState.isRecording) {
             Text(
-                text = formatDuration(recordingDuration),
+                text = formatDuration(uiState.recordingDuration),
                 textAlign = TextAlign.Center,
                 color = Color.Red,
                 style = MaterialTheme.typography.title2,
             )
             Text(
-                text = "$dataPointsRecorded readings",
+                text = "${uiState.dataPointsRecorded} readings",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.caption2,
             )
         }
+
         // Sync Status
-        if (isSyncing) {
+        if (uiState.isSyncing) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -160,12 +135,21 @@ fun MainScreen(
             }
         }
 
-        lastSyncResult?.let { result ->
+        uiState.lastSyncResult?.let { result ->
             Text(
                 text = result,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.caption2,
                 color = if (result.contains("failed", ignoreCase = true)) Color.Red else Color.Green,
+            )
+        }
+
+        uiState.errorMessage?.let { error ->
+            Text(
+                text = error,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.caption2,
+                color = Color.Red,
             )
         }
 
@@ -179,8 +163,8 @@ fun MainScreen(
         )
         Text(
             text =
-                if (availability != null && heartRateBpm > 0) {
-                    "%.0f BPM".format(heartRateBpm)
+                if (uiState.heartRateAvailability != null && uiState.heartRateBpm > 0) {
+                    "%.0f BPM".format(uiState.heartRateBpm)
                 } else {
                     "-- BPM"
                 },
@@ -196,9 +180,9 @@ fun MainScreen(
         Text(
             text =
                 "X:%.2f Y:%.2f Z:%.2f".format(
-                    gyroscopeData[0],
-                    gyroscopeData[1],
-                    gyroscopeData[2],
+                    uiState.gyroscopeData[0],
+                    uiState.gyroscopeData[1],
+                    uiState.gyroscopeData[2],
                 ),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.caption2,
@@ -207,9 +191,9 @@ fun MainScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Manual sync button
-        if (!isRecording && !isSyncing) {
+        if (!uiState.isRecording && !uiState.isSyncing) {
             Button(
-                onClick = onSyncAll,
+                onClick = { onIntent(MainIntent.SyncAllSessions) },
                 modifier = Modifier.fillMaxWidth(0.8f),
                 colors = ButtonDefaults.secondaryButtonColors(),
             ) {

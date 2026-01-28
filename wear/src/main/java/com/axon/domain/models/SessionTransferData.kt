@@ -1,4 +1,6 @@
-package com.axon.models
+package com.axon.domain.models
+
+import com.axon.domain.entity.SensorData
 
 /**
  * Data class for transferring session data between watch and phone.

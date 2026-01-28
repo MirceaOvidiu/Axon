@@ -1,4 +1,4 @@
-package com.axon.models
+package com.axon.domain.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
