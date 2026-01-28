@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
+import com.axon.presentation.screens.dashboard.BottomNavigationBar
+import com.axon.presentation.screens.dashboard.backgroundDark
+import com.axon.presentation.screens.dashboard.cardDark
+import com.axon.presentation.screens.dashboard.primaryColor
+import com.axon.presentation.screens.dashboard.textMutedDark
 import com.axon.presentation.theme.AxonTheme
 
 @Composable
@@ -43,10 +48,7 @@ fun WatchDataScreen(
     viewModel: SensorDataViewModel,
     onNavigateBack: () -> Unit = {}
 ) {
-    val heartRateBpm by viewModel.heartRateBpm.collectAsState()
-    val gyroscopeX by viewModel.gyroscopeX.collectAsState()
-    val gyroscopeY by viewModel.gyroscopeY.collectAsState()
-    val gyroscopeZ by viewModel.gyroscopeZ.collectAsState()
+
     val isConnected by viewModel.isConnected.collectAsState()
 
     AxonTheme(darkTheme = true) {
@@ -60,7 +62,11 @@ fun WatchDataScreen(
                     onNavigateBack = onNavigateBack
                 )
             },
-            bottomBar = { BottomNavigationBar(onNavigateToWatchData = {}, onNavigateToSessions = {}) }
+            bottomBar = {
+                BottomNavigationBar(
+                    onNavigateToWatchData = {},
+                    onNavigateToSessions = {})
+            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -71,14 +77,6 @@ fun WatchDataScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ConnectionStatusCard(isConnected = isConnected)
-
-                HeartRateCard(heartRateBpm = heartRateBpm)
-
-                GyroscopeCard(
-                    gyroscopeX = gyroscopeX,
-                    gyroscopeY = gyroscopeY,
-                    gyroscopeZ = gyroscopeZ
-                )
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -176,164 +174,10 @@ fun ConnectionStatusCard(isConnected: Boolean) {
             if (!isConnected) {
                 Text(
                     text = "Check your watch",
-                    color = Color(0xFFFF6B6B),
+                    color = Color(0xFF90A4AE),
                     fontSize = 12.sp
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun HeartRateCard(heartRateBpm: Double) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = cardDark)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_health_and_safety_24),
-                    contentDescription = "Heart Rate",
-                    tint = Color(0xFFFF6B6B),
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Heart Rate",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = if (heartRateBpm > 0) "%.1f".format(heartRateBpm) else "--",
-                    color = primaryColor,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "BPM",
-                    color = textMutedDark,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            if (heartRateBpm == 0.0) {
-                Text(
-                    text = "Waiting for data from watch...",
-                    color = textMutedDark,
-                    fontSize = 14.sp
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun GyroscopeCard(gyroscopeX: Float, gyroscopeY: Float, gyroscopeZ: Float) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = cardDark)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.outline_display_settings_24),
-                    contentDescription = "Gyroscope",
-                    tint = Color(0xFF4A9DFF),
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Gyroscope",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            GyroscopeAxis(
-                label = "X-Axis",
-                value = gyroscopeX,
-                color = Color(0xFFFF6B6B)
-            )
-
-            GyroscopeAxis(
-                label = "Y-Axis",
-                value = gyroscopeY,
-                color = Color(0xFF4A9DFF)
-            )
-
-            GyroscopeAxis(
-                label = "Z-Axis",
-                value = gyroscopeZ,
-                color = primaryColor
-            )
-
-            if (gyroscopeX == 0f && gyroscopeY == 0f && gyroscopeZ == 0f) {
-                Text(
-                    text = "Waiting for data from watch...",
-                    color = textMutedDark,
-                    fontSize = 14.sp
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun GyroscopeAxis(label: String, value: Float, color: Color) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                color = textMutedDark,
-                fontSize = 14.sp
-            )
-            Text(
-                text = "%.2f rad/s".format(value),
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .background(progressTrackColor, shape = RoundedCornerShape(4.dp))
-        ) {
-            val progress = (value.coerceIn(-5f, 5f) + 5f) / 10f
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(progress)
-                    .height(8.dp)
-                    .background(color, shape = RoundedCornerShape(4.dp))
-            )
         }
     }
 }

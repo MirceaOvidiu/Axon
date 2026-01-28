@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.screens.sessions
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -35,13 +35,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
+import com.axon.data.SessionStats
 import com.axon.models.SensorData
+import com.axon.presentation.screens.dashboard.backgroundDark
+import com.axon.presentation.screens.dashboard.cardDark
+import com.axon.presentation.screens.dashboard.primaryColor
+import com.axon.presentation.screens.dashboard.textMutedDark
 import com.axon.presentation.theme.AxonTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -142,7 +148,7 @@ fun SessionDetailScreen(
                             title = "Heart Rate",
                             unit = "BPM",
                             data = sensorData.mapNotNull { it.heartRate?.toFloat() },
-                            color = Color(0xFFFF6B6B)
+                            color = Color(0xFF2196F3)
                         )
 
                         // Gyroscope chart
@@ -247,7 +253,7 @@ fun SessionInfoCard(
 }
 
 @Composable
-fun StatsCard(stats: com.axon.data.SessionStats) {
+fun StatsCard(stats: SessionStats) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -275,19 +281,19 @@ fun StatsCard(stats: com.axon.data.SessionStats) {
                     label = "Avg HR",
                     value = stats.avgHeartRate?.let { "%.0f".format(it) } ?: "--",
                     unit = "BPM",
-                    color = Color(0xFFFF6B6B)
+                    color = Color(0xFF2196F3)
                 )
                 StatItem(
                     label = "Max HR",
                     value = stats.maxHeartRate?.let { "%.0f".format(it) } ?: "--",
                     unit = "BPM",
-                    color = Color(0xFFFF6B6B)
+                    color = Color(0xFF2196F3)
                 )
                 StatItem(
                     label = "Min HR",
                     value = stats.minHeartRate?.let { "%.0f".format(it) } ?: "--",
                     unit = "BPM",
-                    color = Color(0xFFFF6B6B)
+                    color = Color(0xFF2196F3)
                 )
             }
         }
@@ -437,9 +443,9 @@ fun GyroscopeChartCard(sensorData: List<SensorData>) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                LegendItem(color = Color(0xFF4ECDC4), label = "X")
-                LegendItem(color = Color(0xFFFFE66D), label = "Y")
-                LegendItem(color = Color(0xFFFF6B6B), label = "Z")
+                LegendItem(color = Color(0xFF2196F3), label = "X")  // Blue
+                LegendItem(color = Color(0xFF64B5F6), label = "Y")  // Light blue
+                LegendItem(color = Color(0xFFBBDEFB), label = "Z")  // Pale blue
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -460,17 +466,17 @@ fun GyroscopeChartCard(sensorData: List<SensorData>) {
                 val stepX = width / (dataSize - 1).coerceAtLeast(1)
 
                 // Draw X axis
-                drawGyroLine(gyroX, Color(0xFF4ECDC4), stepX, height, minValue, range)
+                drawGyroLine(gyroX, Color(0xFF2196F3), stepX, height, minValue, range)
                 // Draw Y axis
-                drawGyroLine(gyroY, Color(0xFFFFE66D), stepX, height, minValue, range)
+                drawGyroLine(gyroY, Color(0xFF64B5F6), stepX, height, minValue, range)
                 // Draw Z axis
-                drawGyroLine(gyroZ, Color(0xFFFF6B6B), stepX, height, minValue, range)
+                drawGyroLine(gyroZ, Color(0xFFBBDEFB), stepX, height, minValue, range)
             }
         }
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGyroLine(
+private fun DrawScope.drawGyroLine(
     data: List<Float>,
     color: Color,
     stepX: Float,

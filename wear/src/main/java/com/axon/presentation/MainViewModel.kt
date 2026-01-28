@@ -55,10 +55,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
     }
 
     private var lastSendTime = 0L
-    private val sendInterval = 500L // Send data every 500ms
+    private val sendInterval = 500L // Send real-time data every 500ms (when not recording)
 
     private var lastUiUpdate = 0L
     private val uiUpdateInterval = 50L // Update UI every 50ms (20 FPS)
+
+    // 50Hz sampling = 20ms interval
+    private val sensorSamplingIntervalUs = 20_000 // 20ms in microseconds
+    private val recordingInterval = 20L // 20ms for 50Hz recording
 
     private var recordingStartTime = 0L
     private var durationUpdateJob: Job? = null
@@ -83,8 +87,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
 
     private fun startGyroscope() {
         gyroscopeSensor?.let {
-            val supported = sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-            Log.d("MainViewModel", "Gyroscope sensor registration: $supported")
+            val supported = sensorManager.registerListener(this, it, sensorSamplingIntervalUs)
+            Log.d("MainViewModel", "Gyroscope sensor registration at 50Hz: $supported")
         }
     }
 
@@ -183,12 +187,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
                         gyroY = gyro[1],
                         gyroZ = gyro[2]
                     )
-                    _dataPointsRecorded.value = recordingRepository.getSensorDataCount(sessionId)
+                    // Update data point count less frequently to avoid UI overhead
+                    if (System.currentTimeMillis() % 500 < recordingInterval) {
+                        _dataPointsRecorded.value = recordingRepository.getSensorDataCount(sessionId)
+                    }
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to save sensor data", e)
                 }
 
-                delay(500) // Record data every 500ms
+                delay(recordingInterval) // Record data at 50Hz (every 20ms)
             }
         }
     }
@@ -266,7 +273,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
 
     override fun onCleared() {
         super.onCleared()
+        // coroutine
+        viewModelScope.launch {
         healthServicesManager.unregisterForHeartRateData()
+        }
         stopGyroscope()
         durationUpdateJob?.cancel()
         recordingJob?.cancel()

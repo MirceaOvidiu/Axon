@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.screens.sessions
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
 import com.axon.models.RecordingSession
+import com.axon.presentation.screens.dashboard.BottomNavigationBar
+import com.axon.presentation.screens.dashboard.backgroundDark
+import com.axon.presentation.screens.dashboard.cardDark
+import com.axon.presentation.screens.dashboard.primaryColor
+import com.axon.presentation.screens.dashboard.textMutedDark
 import com.axon.presentation.theme.AxonTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -61,7 +66,7 @@ fun SessionListScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.baseline_health_and_safety_24),
+                                painter = painterResource(id = R.drawable.pulse),
                                 contentDescription = "Sessions",
                                 tint = primaryColor,
                                 modifier = Modifier.size(28.dp)
@@ -105,7 +110,8 @@ fun SessionListScreen(
                     items(sessions) { session ->
                         SessionCard(
                             session = session,
-                            onClick = { onSessionClick(session.id) }
+                            onClick = { onSessionClick(session.id) },
+                            onDelete = { viewModel.deleteSession(session.id) }
                         )
                     }
 
@@ -148,7 +154,8 @@ fun EmptySessionsView(modifier: Modifier = Modifier) {
 @Composable
 fun SessionCard(
     session: RecordingSession,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -161,45 +168,58 @@ fun SessionCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = cardDark)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = dateFormat.format(Date(session.startTime)),
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = formatDuration(duration),
-                    color = primaryColor,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = dateFormat.format(Date(session.startTime)),
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = formatDuration(duration),
+                        color = primaryColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "${timeFormat.format(Date(session.startTime))} - ${timeFormat.format(Date(session.endTime))}",
+                        color = textMutedDark,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "${session.dataPointCount} readings",
+                        color = textMutedDark,
+                        fontSize = 14.sp
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "${timeFormat.format(Date(session.startTime))} - ${timeFormat.format(Date(session.endTime))}",
-                    color = textMutedDark,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = "${session.dataPointCount} readings",
-                    color = textMutedDark,
-                    fontSize = 14.sp
+            IconButton(onClick = onDelete) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_delete_24),
+                    contentDescription = "Delete session",
+                    tint = Color(0xFFFF6B6B)
                 )
             }
         }

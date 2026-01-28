@@ -8,6 +8,7 @@ import androidx.health.services.client.data.Availability
 import androidx.health.services.client.data.DataPointContainer
 import androidx.health.services.client.data.DataType
 import androidx.health.services.client.data.DeltaDataType
+import androidx.health.services.client.unregisterMeasureCallback
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -39,13 +40,14 @@ class HealthServicesManager(context: Context) {
         }
     }
 
+
     fun registerForHeartRateData() {
         Log.d("HealthServicesManager", "Registering for heart rate data")
         measureClient.registerMeasureCallback(DataType.HEART_RATE_BPM, measureCallback)
     }
 
-    fun unregisterForHeartRateData() {
+    suspend fun unregisterForHeartRateData() {
         Log.d("HealthServicesManager", "Unregistering for heart rate data")
-        measureClient.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, measureCallback)
+        measureClient.unregisterMeasureCallback(DataType.HEART_RATE_BPM, measureCallback)
     }
 }

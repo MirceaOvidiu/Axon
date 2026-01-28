@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.screens.sessions
 
 import android.app.Application
 import android.content.BroadcastReceiver

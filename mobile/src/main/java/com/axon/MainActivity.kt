@@ -8,12 +8,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.axon.presentation.RecoveryDashboardScreen
-import com.axon.presentation.SensorDataViewModel
-import com.axon.presentation.SessionDetailScreen
-import com.axon.presentation.SessionListScreen
-import com.axon.presentation.SessionViewModel
-import com.axon.presentation.WatchDataScreen
+import com.axon.presentation.screens.SensorDataViewModel
+import com.axon.presentation.screens.WatchDataScreen
+import com.axon.presentation.screens.dashboard.RecoveryDashboardScreen
+import com.axon.presentation.screens.sessions.SessionDetailScreen
+import com.axon.presentation.screens.sessions.SessionListScreen
+import com.axon.presentation.screens.sessions.SessionViewModel
 import com.axon.presentation.theme.AxonTheme
 
 class MainActivity : ComponentActivity() {

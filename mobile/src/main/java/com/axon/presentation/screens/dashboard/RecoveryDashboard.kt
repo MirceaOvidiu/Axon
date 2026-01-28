@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.screens.dashboard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -16,11 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -43,11 +40,12 @@ import androidx.compose.ui.unit.sp
 import com.axon.R
 import com.axon.presentation.theme.AxonTheme
 
-val primaryColor = Color(0xFF13EC80)
-val backgroundDark = Color(0xFF102219)
-val cardDark = Color(0xFF1A2D23)
-val textMutedDark = Color(0xFF92C9AD)
-val progressTrackColor = Color(0xFF32674d)
+// Deep blue, black, and white color palette
+val primaryColor = Color(0xFF2196F3)        // Deep blue (primary accent)
+val backgroundDark = Color(0xFF0A0E14)      // Near black background
+val cardDark = Color(0xFF151C25)            // Dark blue-grey for cards
+val textMutedDark = Color(0xFF8BA4C7)       // Muted blue-grey for secondary text
+val progressTrackColor = Color(0xFF1E3A5F)  // Dark blue for progress tracks
 
 @Composable
 fun RecoveryDashboardScreen(
@@ -74,8 +72,6 @@ fun RecoveryDashboardScreen(
                 TopHeader()
                 MainProgressCard()
                 KeyMetricsSection()
-                TodaysPlanSection()
-                WeeklyProgressSection()
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -194,116 +190,11 @@ fun MetricCard(title: String, value: String, change: String, modifier: Modifier 
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(text = title, color = Color.White, fontSize = 16.sp)
             Text(text = value, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text(text = change, color = Color(0xFF0BDA46), fontSize = 16.sp)
+            Text(text = change, color = Color(0xFF64B5F6), fontSize = 16.sp)
         }
     }
 }
 
-@Composable
-fun TodaysPlanSection() {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text(
-            text = "Today's Plan",
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-        PlanItem(
-            iconRes = R.drawable.outline_arrow_top_right_24,
-            title = "Wrist Extension",
-            details = "2 sets of 15"
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        PlanItem(
-            iconRes = R.drawable.outline_arrow_top_left_24,
-            title = "Object Grasping",
-            details = "10 mins"
-        )
-    }
-}
-
-@Composable
-fun PlanItem(iconRes: Int, title: String, details: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = cardDark)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(primaryColor.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = iconRes),
-                        contentDescription = title,
-                        tint = primaryColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Column {
-                    Text(text = title, color = Color.White, fontWeight = FontWeight.SemiBold)
-                    Text(text = details, color = textMutedDark, fontSize = 14.sp)
-                }
-            }
-            Button(
-                onClick = { /* TODO: Start Exercise */ },
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryColor, contentColor = Color.Black)
-            ) {
-                Text("Start", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-fun WeeklyProgressSection() {
-    val progressData = mapOf(
-        "Mon" to 0.4f, "Tue" to 0.6f, "Wed" to 0.5f, "Thu" to 0.8f,
-        "Fri" to 0.7f, "Sat" to 0.9f, "Sun" to 0.75f
-    )
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Weekly Progress",
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = cardDark)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Active Time (minutes)", color = Color.White)
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    progressData.forEach { (day, progress) ->
-                        Bar(day = day, progress = progress, isCurrentDay = day == "Sun")
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun RowScope.Bar(day: String, progress: Float, isCurrentDay: Boolean) {
@@ -361,7 +252,7 @@ fun BottomNavigationBar(
         NavigationBarItem(
             selected = false,
             onClick = onNavigateToSessions,
-            icon = { Icon(painterResource(R.drawable.baseline_health_and_safety_24), contentDescription = "Sessions") },
+            icon = { Icon(painterResource(R.drawable.pulse), contentDescription = "Sessions") },
             label = { Text("Sessions") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = primaryColor,

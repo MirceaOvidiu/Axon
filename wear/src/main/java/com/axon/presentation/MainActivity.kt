@@ -1,12 +1,14 @@
 package com.axon.presentation
 
 import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,6 +49,7 @@ class MainActivity : ComponentActivity() {
             // Permission result handled
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -83,28 +86,20 @@ fun WearApp(viewModel: MainViewModel) {
     val lastSyncResult by viewModel.lastSyncResult.collectAsState()
 
     AxonTheme {
-        if (showRawData) {
-            RawDataScreen(
-                heartRateBpm = heartRateBpm,
-                gyroscopeData = gyroscopeData,
-                onBack = { showRawData = false }
-            )
-        } else {
-            MainScreen(
-                heartRateBpm = heartRateBpm,
-                availability = availability,
-                gyroscopeData = gyroscopeData,
-                isRecording = isRecording,
-                recordingDuration = recordingDuration,
-                dataPointsRecorded = dataPointsRecorded,
-                isSyncing = isSyncing,
-                lastSyncResult = lastSyncResult,
-                onStartRecording = { viewModel.startRecording() },
-                onStopRecording = { viewModel.stopRecording() },
-                onSyncAll = { viewModel.syncAllUnsyncedSessions() },
-                onShowRawData = { showRawData = true }
-            )
-        }
+        MainScreen(
+            heartRateBpm = heartRateBpm,
+            availability = availability,
+            gyroscopeData = gyroscopeData,
+            isRecording = isRecording,
+            recordingDuration = recordingDuration,
+            dataPointsRecorded = dataPointsRecorded,
+            isSyncing = isSyncing,
+            lastSyncResult = lastSyncResult,
+            onStartRecording = { viewModel.startRecording() },
+            onStopRecording = { viewModel.stopRecording() },
+            onSyncAll = { viewModel.syncAllUnsyncedSessions() },
+            onShowRawData = { showRawData = true }
+        )
     }
 }
 
@@ -140,106 +135,97 @@ fun MainScreen(
             onStopRecording = onStopRecording
         )
 
-            // Recording Status
-            if (isRecording) {
-                Text(
-                    text = formatDuration(recordingDuration),
-                    textAlign = TextAlign.Center,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.title2
-                )
-                Text(
-                    text = "$dataPointsRecorded readings",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.caption2
-                )
-            }
-
-            // Sync Status
-            if (isSyncing) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Text(
-                        text = "Syncing...",
-                        style = MaterialTheme.typography.caption2
-                    )
-                }
-            }
-
-            lastSyncResult?.let { result ->
-                Text(
-                    text = result,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.caption2,
-                    color = if (result.contains("failed", ignoreCase = true)) Color.Red else Color.Green
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Heart Rate
+        // Recording Status
+        if (isRecording) {
             Text(
-                text = "Heart Rate:",
+                text = formatDuration(recordingDuration),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
+                color = Color.Red,
+                style = MaterialTheme.typography.title2
             )
             Text(
-                text = if (availability != null && heartRateBpm > 0) {
-                    "%.0f BPM".format(heartRateBpm)
-                } else {
-                    "-- BPM"
-                },
-                textAlign = TextAlign.Center,
-            )
-
-
-            // Gyroscope
-            Text(
-                text = "Gyroscope:",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-            Text(
-                text = "X:%.2f Y:%.2f Z:%.2f".format(
-                    gyroscopeData[0],
-                    gyroscopeData[1],
-                    gyroscopeData[2]
-                ),
+                text = "$dataPointsRecorded readings",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.caption2
             )
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Manual sync button
-            if (!isRecording && !isSyncing) {
-                Button(
-                    onClick = onSyncAll,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    colors = ButtonDefaults.secondaryButtonColors()
-                ) {
-                    Text("Sync All")
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Raw Data button
-                Button(
-                    onClick = onShowRawData,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    colors = ButtonDefaults.secondaryButtonColors()
-                ) {
-                    Text("Raw Data")
-                }
+        // Sync Status
+        if (isSyncing) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp
+                )
+                Text(
+                    text = "Syncing...",
+                    style = MaterialTheme.typography.caption2
+                )
             }
         }
+
+        lastSyncResult?.let { result ->
+            Text(
+                text = result,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.caption2,
+                color = if (result.contains("failed", ignoreCase = true)) Color.Red else Color.Green
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Heart Rate
+        Text(
+            text = "Heart Rate:",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.title3
+        )
+        Text(
+            text = if (availability != null && heartRateBpm > 0) {
+                "%.0f BPM".format(heartRateBpm)
+            } else {
+                "-- BPM"
+            },
+            textAlign = TextAlign.Center,
+        )
+
+
+        // Gyroscope
+        Text(
+            text = "Gyroscope:",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.title3
+        )
+        Text(
+            text = "X:%.2f Y:%.2f Z:%.2f".format(
+                gyroscopeData[0],
+                gyroscopeData[1],
+                gyroscopeData[2]
+            ),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.caption2
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Manual sync button
+        if (!isRecording && !isSyncing) {
+            Button(
+                onClick = onSyncAll,
+                modifier = Modifier.fillMaxWidth(0.8f),
+                colors = ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text("Sync All")
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+        }
     }
+}
 
 @Composable
 fun RecordingButton(
@@ -275,96 +261,5 @@ fun formatDuration(millis: Long): String {
         "%d:%02d:%02d".format(hours, minutes, seconds)
     } else {
         "%02d:%02d".format(minutes, seconds)
-    }
-}
-
-@Composable
-fun RawDataScreen(
-    heartRateBpm: Double,
-    gyroscopeData: FloatArray,
-    onBack: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colors.background)
-            .verticalScroll(rememberScrollState())
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Raw Sensor Data",
-            style = MaterialTheme.typography.title3,
-            textAlign = TextAlign.Center,
-            color = Color.Cyan
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Heart Rate Raw Value
-        RawDataRow(label = "Heart Rate", value = "%.2f".format(heartRateBpm), unit = "BPM")
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Gyroscope Raw Values
-        Text(
-            text = "Gyroscope (rad/s)",
-            style = MaterialTheme.typography.caption1,
-            color = Color.Yellow
-        )
-        RawDataRow(label = "X", value = "%.4f".format(gyroscopeData[0]), unit = "")
-        RawDataRow(label = "Y", value = "%.4f".format(gyroscopeData[1]), unit = "")
-        RawDataRow(label = "Z", value = "%.4f".format(gyroscopeData[2]), unit = "")
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Gyroscope magnitude
-        val magnitude = kotlin.math.sqrt(
-            gyroscopeData[0] * gyroscopeData[0] +
-            gyroscopeData[1] * gyroscopeData[1] +
-            gyroscopeData[2] * gyroscopeData[2]
-        )
-        RawDataRow(label = "Magnitude", value = "%.4f".format(magnitude), unit = "")
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Timestamp
-        Text(
-            text = "Updated: ${java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(java.util.Date())}",
-            style = MaterialTheme.typography.caption2,
-            color = Color.Gray
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Back button
-        Button(
-            onClick = onBack,
-            modifier = Modifier.fillMaxWidth(0.8f),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text("Back")
-        }
-    }
-}
-
-@Composable
-fun RawDataRow(label: String, value: String, unit: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.caption2,
-            color = Color.LightGray
-        )
-        Text(
-            text = if (unit.isNotEmpty()) "$value $unit" else value,
-            style = MaterialTheme.typography.caption1,
-            color = Color.White
-        )
     }
 }

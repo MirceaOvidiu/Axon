@@ -14,17 +14,20 @@
 
         <service
             android:name=".data.DataLayerListenerService"
-            android:exported="true"
-            android:permission="com.google.android.gms.wearable.BIND_LISTENER">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/sensor_data" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:scheme="wear" />
-                <data android:host="*" />
-                <data android:pathPrefix="/sensor_data" />
-                <data android:scheme="wear" />
-                <data android:host="*" />
-                <data android:pathPrefix="/session_data" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/session_data" />
             </intent-filter>
         </service>
 
