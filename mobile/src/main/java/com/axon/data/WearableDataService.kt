@@ -1,15 +1,11 @@
 package com.axon.data
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.util.Log
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,47 +15,24 @@ import kotlinx.coroutines.tasks.await
 
 
 class WearableDataService(private val context: Context) {
-    private val dataClient: DataClient = Wearable.getDataClient(context)
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val nodeClient = Wearable.getNodeClient(context)
 
     private val _connectedNodeId = MutableStateFlow<String?>(null)
-    val connectedNodeId: StateFlow<String?> = _connectedNodeId.asStateFlow()
-
 
     private val _heartRateBpm = MutableStateFlow(0.0)
-    val heartRateBpm: StateFlow<Double> = _heartRateBpm.asStateFlow()
 
     private val _gyroscopeX = MutableStateFlow(0f)
-    val gyroscopeX: StateFlow<Float> = _gyroscopeX.asStateFlow()
 
     private val _gyroscopeY = MutableStateFlow(0f)
-    val gyroscopeY: StateFlow<Float> = _gyroscopeY.asStateFlow()
 
     private val _gyroscopeZ = MutableStateFlow(0f)
-    val gyroscopeZ: StateFlow<Float> = _gyroscopeZ.asStateFlow()
 
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-    private val dataReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == DataLayerListenerService.ACTION_DATA_RECEIVED) {
-                val heartRate = intent.getDoubleExtra(DataLayerListenerService.EXTRA_HEART_RATE, 0.0)
-                val gyroX = intent.getFloatExtra(DataLayerListenerService.EXTRA_GYRO_X, 0f)
-                val gyroY = intent.getFloatExtra(DataLayerListenerService.EXTRA_GYRO_Y, 0f)
-                val gyroZ = intent.getFloatExtra(DataLayerListenerService.EXTRA_GYRO_Z, 0f)
-                Log.d("WearableDataService", "Received data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
-
-                _heartRateBpm.value = heartRate
-                _gyroscopeX.value = gyroX
-                _gyroscopeY.value = gyroY
-                _gyroscopeZ.value = gyroZ
-                Log.d(TAG, "BroadcastReceiver updated data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
-            }
-        }
-    }
+    private var dataCollectionJob: Job? = null
 
     init {
         startListening()
@@ -72,17 +45,20 @@ class WearableDataService(private val context: Context) {
     }
 
     fun startListening() {
-        // Register the receiver for local broadcasts
-        try {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(dataReceiver)
-            Log.d(TAG, "Unregistered old receiver (if any)")
-        } catch (e: Exception) {
-            Log.d(TAG, "No old receiver to unregister")
-        }
+        // Cancel any existing collection job
+        dataCollectionJob?.cancel()
 
-        val intentFilter = IntentFilter(DataLayerListenerService.ACTION_DATA_RECEIVED)
-        LocalBroadcastManager.getInstance(context).registerReceiver(dataReceiver, intentFilter)
-        Log.d(TAG, "★★★ BroadcastReceiver REGISTERED for action: ${DataLayerListenerService.ACTION_DATA_RECEIVED}")
+        // Collect sensor data events from SharedFlow
+        dataCollectionJob = serviceScope.launch {
+            DataLayerEvents.sensorDataEvents.collect { event ->
+                _heartRateBpm.value = event.heartRate
+                _gyroscopeX.value = event.gyroX
+                _gyroscopeY.value = event.gyroY
+                _gyroscopeZ.value = event.gyroZ
+                Log.d(TAG, "SharedFlow updated data: HR=${event.heartRate}, Gyro=(${event.gyroX}, ${event.gyroY}, ${event.gyroZ})")
+            }
+        }
+        Log.d(TAG, "★★★ Started collecting sensor data events via SharedFlow")
 
         checkConnection()
         fetchCurrentData()
@@ -130,9 +106,10 @@ class WearableDataService(private val context: Context) {
     }
 
     fun stopListening() {
-        // Unregister the receiver to avoid memory leaks
-        LocalBroadcastManager.getInstance(context).unregisterReceiver(dataReceiver)
-        Log.d(TAG, "Stopped listening for wearable data and unregistered broadcast receiver")
+        // Cancel the data collection job
+        dataCollectionJob?.cancel()
+        dataCollectionJob = null
+        Log.d(TAG, "Stopped listening for wearable data")
     }
 
     private fun checkConnection() {

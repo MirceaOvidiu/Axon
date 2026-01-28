@@ -1,4 +1,4 @@
-package com.axon.presentation
+package com.axon.presentation.screens
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -10,10 +10,6 @@ import kotlinx.coroutines.launch
 class SensorDataViewModel(application: Application) : AndroidViewModel(application) {
     private val wearableDataService = WearableDataService(application)
 
-    val heartRateBpm: StateFlow<Double> = wearableDataService.heartRateBpm
-    val gyroscopeX: StateFlow<Float> = wearableDataService.gyroscopeX
-    val gyroscopeY: StateFlow<Float> = wearableDataService.gyroscopeY
-    val gyroscopeZ: StateFlow<Float> = wearableDataService.gyroscopeZ
     val isConnected: StateFlow<Boolean> = wearableDataService.isConnected
 
     init {
