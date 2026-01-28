@@ -60,6 +60,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.activity.compose)
 
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
     implementation(libs.play.services.wearable)
     implementation(libs.jetbrains.kotlinx.coroutines.play.services)
     implementation(libs.androidx.tiles.material)

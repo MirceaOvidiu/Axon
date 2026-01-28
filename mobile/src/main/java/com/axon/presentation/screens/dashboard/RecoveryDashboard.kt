@@ -95,7 +95,7 @@ fun TopHeader() {
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = "Today is a new day for progress.",
+            text = "Hai boss ca se poate.",
             color = textMutedDark,
             fontSize = 14.sp,
         )
@@ -118,7 +118,7 @@ fun MainProgressCard() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Today's Goal: 20 mins of activity", color = Color.White, fontSize = 16.sp)
+                Text("Today's Goal: Yes", color = Color.White, fontSize = 16.sp)
                 Text("75%", color = primaryColor, fontSize = 14.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))

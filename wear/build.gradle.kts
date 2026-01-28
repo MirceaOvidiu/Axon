@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
+    id("com.google.dagger.hilt.android") version "2.59"
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
 }
 
@@ -57,6 +58,9 @@ dependencies {
     implementation(libs.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     // Room Database
     implementation(libs.room.runtime)

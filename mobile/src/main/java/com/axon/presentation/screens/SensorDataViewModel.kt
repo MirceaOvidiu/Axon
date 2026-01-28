@@ -11,6 +11,7 @@ class SensorDataViewModel(application: Application) : AndroidViewModel(applicati
     private val wearableDataService = WearableDataService(application)
 
     val isConnected: StateFlow<Boolean> = wearableDataService.isConnected
+    val connectedModelName: StateFlow<String?> = wearableDataService.connectedNodeName
 
     init {
         wearableDataService.startListening()

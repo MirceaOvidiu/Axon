@@ -1,8 +1,8 @@
-package com.axon.data
+package com.axon.data.source.datalayer
 
 import android.content.Context
 import android.util.Log
-import com.axon.models.SessionTransferData
+import com.axon.domain.models.SessionTransferData
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -75,10 +75,10 @@ class WearableDataSender(context: Context) {
             for (node in nodes) {
                 try {
                     messageClient.sendMessage(node.id, SESSION_DATA_PATH, dataBytes).await()
-                    Log.d(TAG, "▶▶▶ SESSION DATA SENT to node: ${node.displayName} (${node.id})")
+                    Log.d(TAG, "SESSION DATA SENT to node: ${node.displayName} (${node.id})")
                     success = true
                 } catch (e: Exception) {
-                    Log.e(TAG, "✗✗✗ Failed to send to node: ${node.displayName}", e)
+                    Log.e(TAG, "Failed to send to node: ${node.displayName}", e)
                 }
             }
 

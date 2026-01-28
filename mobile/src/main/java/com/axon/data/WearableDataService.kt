@@ -2,6 +2,7 @@ package com.axon.data
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,13 +14,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-
-class WearableDataService(private val context: Context) {
+class WearableDataService(
+    private val context: Context,
+) {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val nodeClient = Wearable.getNodeClient(context)
 
     private val _connectedNodeId = MutableStateFlow<String?>(null)
+    private val _connectedNodeName = MutableStateFlow<String?>(null)
+    val connectedNodeName: StateFlow<String?> = _connectedNodeName.asStateFlow()
 
     private val _heartRateBpm = MutableStateFlow(0.0)
 
@@ -49,24 +53,28 @@ class WearableDataService(private val context: Context) {
         dataCollectionJob?.cancel()
 
         // Collect sensor data events from SharedFlow
-        dataCollectionJob = serviceScope.launch {
-            DataLayerEvents.sensorDataEvents.collect { event ->
-                _heartRateBpm.value = event.heartRate
-                _gyroscopeX.value = event.gyroX
-                _gyroscopeY.value = event.gyroY
-                _gyroscopeZ.value = event.gyroZ
-                Log.d(TAG, "SharedFlow updated data: HR=${event.heartRate}, Gyro=(${event.gyroX}, ${event.gyroY}, ${event.gyroZ})")
+        dataCollectionJob =
+            serviceScope.launch {
+                DataLayerEvents.sensorDataEvents.collect { event ->
+                    _heartRateBpm.value = event.heartRate
+                    _gyroscopeX.value = event.gyroX
+                    _gyroscopeY.value = event.gyroY
+                    _gyroscopeZ.value = event.gyroZ
+                    Log.d(
+                        TAG,
+                        "SharedFlow updated data: HR=${event.heartRate}, Gyro=(${event.gyroX}, ${event.gyroY}, ${event.gyroZ})",
+                    )
+                }
             }
-        }
-        Log.d(TAG, "★★★ Started collecting sensor data events via SharedFlow")
-
         checkConnection()
         fetchCurrentData()
         Log.d(TAG, "Started listening for wearable data")
     }
 
     private fun fetchCurrentData() {
-        Wearable.getDataClient(context).dataItems
+        Wearable
+            .getDataClient(context)
+            .dataItems
             .addOnSuccessListener { dataItems ->
                 Log.d(TAG, "fetchCurrentData found ${dataItems.count} items")
                 dataItems.forEach { item ->
@@ -83,12 +91,14 @@ class WearableDataService(private val context: Context) {
                             _gyroscopeX.value = gyroX
                             _gyroscopeY.value = gyroY
                             _gyroscopeZ.value = gyroZ
-                            Log.d(TAG, "Fetched initial data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
+                            Log.d(
+                                TAG,
+                                "Fetched initial data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)",
+                            )
                         }
                     }
                 }
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 Log.e(TAG, "Failed to fetch initial data", e)
             }
     }
@@ -97,10 +107,17 @@ class WearableDataService(private val context: Context) {
         serviceScope.launch {
             try {
                 val nodes = Wearable.getNodeClient(context).connectedNodes.await()
-                _connectedNodeId.value = nodes.firstOrNull()?.id
-                Log.d("WearableDataService", "Connected nodes: ${nodes.size}")
+                val first: Node? = nodes.firstOrNull()
+                _connectedNodeId.value = first?.id
+                _connectedNodeName.value = first?.displayName
+                Log.d(
+                    "WearableDataService",
+                    "Connected nodes: ${nodes.size}; name=${first?.displayName}",
+                )
             } catch (e: Exception) {
                 Log.e("WearableDataService", "Error fetching connected nodes", e)
+                _connectedNodeId.value = null
+                _connectedNodeName.value = null
             }
         }
     }
@@ -113,16 +130,23 @@ class WearableDataService(private val context: Context) {
     }
 
     private fun checkConnection() {
-        nodeClient.connectedNodes.addOnSuccessListener { nodes ->
-            _isConnected.value = nodes.isNotEmpty()
-            Log.d(TAG, "Connected nodes: ${nodes.size}")
-        }.addOnFailureListener { exception ->
-            Log.e(TAG, "Failed to check connection", exception)
-            _isConnected.value = false
-        }
+        nodeClient.connectedNodes
+            .addOnSuccessListener { nodes ->
+                _isConnected.value = nodes.isNotEmpty()
+                val first = nodes.firstOrNull()
+                _connectedNodeId.value = first?.id
+                _connectedNodeName.value = first?.displayName
+                Log.d(TAG, "Connected nodes: ${nodes.size}; name=${first?.displayName}")
+            }.addOnFailureListener { exception ->
+                Log.e(TAG, "Failed to check connection", exception)
+                _isConnected.value = false
+                _connectedNodeId.value = null
+                _connectedNodeName.value = null
+            }
     }
 
     fun requestDataSync() {
         checkConnection()
+        fetchConnectedNode()
     }
 }
