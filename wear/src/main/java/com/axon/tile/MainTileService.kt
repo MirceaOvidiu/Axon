@@ -27,7 +27,7 @@ class MainTileService : SuspendingTileService() {
 
     override suspend fun resourcesRequest(
         requestParams: RequestBuilders.ResourcesRequest
-    ) = resources(requestParams)
+    ) = resources()
 
     override suspend fun tileRequest(
         requestParams: RequestBuilders.TileRequest
@@ -35,7 +35,6 @@ class MainTileService : SuspendingTileService() {
 }
 
 private fun resources(
-    requestParams: RequestBuilders.ResourcesRequest
 ): ResourceBuilders.Resources {
     return ResourceBuilders.Resources.Builder()
         .setVersion(RESOURCES_VERSION)
@@ -80,6 +79,6 @@ private fun tileLayout(
 
 @Preview(device = WearDevices.SMALL_ROUND)
 @Preview(device = WearDevices.LARGE_ROUND)
-fun tilePreview(context: Context) = TilePreviewData(::resources) {
+fun tilePreview(context: Context) = TilePreviewData {
     tile(it, context)
 }

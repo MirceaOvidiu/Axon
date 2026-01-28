@@ -73,6 +73,7 @@ class DataLayerListenerService : WearableListenerService() {
             SESSION_DATA_PATH -> {
                 handleSessionData(messageEvent.data)
             }
+
             else -> {
                 Log.w(TAG, "Unknown message path: ${messageEvent.path}")
             }

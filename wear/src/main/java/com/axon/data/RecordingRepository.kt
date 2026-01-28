@@ -8,7 +8,6 @@ import com.axon.models.RecordingSession
 import com.axon.models.SensorData
 import com.axon.models.SessionTransferData
 import com.axon.models.toSensorReading
-import kotlinx.coroutines.flow.Flow
 
 class RecordingRepository(context: Context) {
     private val database: AppDatabase = AppDatabase.getDatabase(context)
@@ -38,18 +37,6 @@ class RecordingRepository(context: Context) {
         return sensorDao.getActiveSession()
     }
 
-    suspend fun getSession(sessionId: Long): RecordingSession? {
-        return sensorDao.getSession(sessionId)
-    }
-
-    fun getAllSessionsFlow(): Flow<List<RecordingSession>> {
-        return sensorDao.getAllSessionsFlow()
-    }
-
-    suspend fun getAllSessions(): List<RecordingSession> {
-        return sensorDao.getAllSessions()
-    }
-
     // Sensor data operations
     suspend fun saveSensorData(
         sessionId: Long,
@@ -67,14 +54,6 @@ class RecordingRepository(context: Context) {
             gyroZ = gyroZ
         )
         return sensorDao.insertSensorData(sensorData)
-    }
-
-    suspend fun getSensorDataBySession(sessionId: Long): List<SensorData> {
-        return sensorDao.getSensorDataBySession(sessionId)
-    }
-
-    fun getSensorDataBySessionFlow(sessionId: Long): Flow<List<SensorData>> {
-        return sensorDao.getSensorDataBySessionFlow(sessionId)
     }
 
     suspend fun getSensorDataCount(sessionId: Long): Int {
@@ -108,9 +87,4 @@ class RecordingRepository(context: Context) {
         )
     }
 
-    suspend fun deleteSession(sessionId: Long) {
-        sensorDao.deleteSensorDataBySession(sessionId)
-        sensorDao.deleteSession(sessionId)
-        Log.d(TAG, "Deleted session: $sessionId")
-    }
 }

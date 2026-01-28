@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
 }
 
 android {
@@ -25,7 +25,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -48,8 +48,8 @@ kotlin {
     }
 }
 
+@Suppress("ktlint:standard:final-newline")
 dependencies {
-
     implementation(libs.material)
     implementation(libs.androidx.core.ktx)
 
@@ -57,23 +57,23 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation("androidx.compose.material3:material3")
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.activity.compose)
 
     implementation(libs.play.services.wearable)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services")
+    implementation(libs.jetbrains.kotlinx.coroutines.play.services)
     implementation(libs.androidx.tiles.material)
     implementation(libs.androidx.protolayout.material)
     implementation(libs.androidx.room.common.jvm)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.androidx.material3)
     ksp(libs.room.compiler)
 
-    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation(libs.gson)
-    implementation("androidx.navigation:navigation-compose:2.7.6")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

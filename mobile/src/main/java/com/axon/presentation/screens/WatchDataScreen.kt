@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
-import com.axon.presentation.screens.dashboard.BottomNavigationBar
 import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
 import com.axon.presentation.screens.dashboard.primaryColor
@@ -46,9 +45,8 @@ import com.axon.presentation.theme.AxonTheme
 @Composable
 fun WatchDataScreen(
     viewModel: SensorDataViewModel,
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
-
     val isConnected by viewModel.isConnected.collectAsState()
 
     AxonTheme(darkTheme = true) {
@@ -59,22 +57,18 @@ fun WatchDataScreen(
                 WatchDataTopBar(
                     isConnected = isConnected,
                     onRefresh = { viewModel.refreshConnection() },
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = onNavigateBack,
                 )
             },
-            bottomBar = {
-                BottomNavigationBar(
-                    onNavigateToWatchData = {},
-                    onNavigateToSessions = {})
-            }
         ) { innerPadding ->
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 ConnectionStatusCard(isConnected = isConnected)
 
@@ -86,24 +80,28 @@ fun WatchDataScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchDataTopBar(isConnected: Boolean, onRefresh: () -> Unit, onNavigateBack: () -> Unit) {
+fun WatchDataTopBar(
+    isConnected: Boolean,
+    onRefresh: () -> Unit,
+    onNavigateBack: () -> Unit,
+) {
     TopAppBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_health_and_safety_24),
                     contentDescription = "Watch Data",
                     tint = primaryColor,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(28.dp),
                 )
                 Text(
                     text = "Watch Data",
                     color = Color.White,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
         },
@@ -112,7 +110,7 @@ fun WatchDataTopBar(isConnected: Boolean, onRefresh: () -> Unit, onNavigateBack:
                 Icon(
                     painter = painterResource(id = R.drawable.outline_dashboard_24),
                     contentDescription = "Back",
-                    tint = primaryColor
+                    tint = primaryColor,
                 )
             }
         },
@@ -121,13 +119,14 @@ fun WatchDataTopBar(isConnected: Boolean, onRefresh: () -> Unit, onNavigateBack:
                 Icon(
                     painter = painterResource(id = R.drawable.outline_display_settings_24),
                     contentDescription = "Refresh",
-                    tint = if (isConnected) primaryColor else textMutedDark
+                    tint = if (isConnected) primaryColor else textMutedDark,
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = backgroundDark
-        )
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = backgroundDark,
+            ),
     )
 }
 
@@ -136,38 +135,41 @@ fun ConnectionStatusCard(isConnected: Boolean) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isConnected) cardDark else cardDark.copy(alpha = 0.5f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = if (isConnected) cardDark else cardDark.copy(alpha = 0.5f),
+            ),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(if (isConnected) primaryColor else Color.Red)
+                    modifier =
+                        Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(if (isConnected) primaryColor else Color.Red),
                 )
                 Column {
                     Text(
                         text = "Watch Connection",
                         color = Color.White,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         text = if (isConnected) "Connected" else "Disconnected",
                         color = textMutedDark,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
                     )
                 }
             }
@@ -175,10 +177,9 @@ fun ConnectionStatusCard(isConnected: Boolean) {
                 Text(
                     text = "Check your watch",
                     color = Color(0xFF90A4AE),
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
                 )
             }
         }
     }
 }
-

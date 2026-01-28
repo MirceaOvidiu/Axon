@@ -2,7 +2,6 @@ package com.axon.data
 
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,25 +15,19 @@ import kotlinx.coroutines.tasks.await
 
 
 class WearableDataService(private val context: Context) {
-    private val dataClient: DataClient = Wearable.getDataClient(context)
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val nodeClient = Wearable.getNodeClient(context)
 
     private val _connectedNodeId = MutableStateFlow<String?>(null)
-    val connectedNodeId: StateFlow<String?> = _connectedNodeId.asStateFlow()
 
     private val _heartRateBpm = MutableStateFlow(0.0)
-    val heartRateBpm: StateFlow<Double> = _heartRateBpm.asStateFlow()
 
     private val _gyroscopeX = MutableStateFlow(0f)
-    val gyroscopeX: StateFlow<Float> = _gyroscopeX.asStateFlow()
 
     private val _gyroscopeY = MutableStateFlow(0f)
-    val gyroscopeY: StateFlow<Float> = _gyroscopeY.asStateFlow()
 
     private val _gyroscopeZ = MutableStateFlow(0f)
-    val gyroscopeZ: StateFlow<Float> = _gyroscopeZ.asStateFlow()
 
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()

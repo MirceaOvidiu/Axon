@@ -24,9 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,8 +57,8 @@ class MainActivity : ComponentActivity() {
         requestPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.BODY_SENSORS,
-                Manifest.permission.BODY_SENSORS_BACKGROUND
-            )
+                Manifest.permission.BODY_SENSORS_BACKGROUND,
+            ),
         )
 
         setContent {
@@ -72,8 +69,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp(viewModel: MainViewModel) {
-    var showRawData by remember { mutableStateOf(false) }
-
     val heartRateBpm by viewModel.heartRateBpm.collectAsState()
     val availability by viewModel.availability.collectAsState()
     val gyroscopeData by viewModel.gyroscopeData.collectAsState()
@@ -98,7 +93,6 @@ fun WearApp(viewModel: MainViewModel) {
             onStartRecording = { viewModel.startRecording() },
             onStopRecording = { viewModel.stopRecording() },
             onSyncAll = { viewModel.syncAllUnsyncedSessions() },
-            onShowRawData = { showRawData = true }
         )
     }
 }
@@ -116,23 +110,23 @@ fun MainScreen(
     onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
     onSyncAll: () -> Unit,
-    onShowRawData: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colors.background)
-            .verticalScroll(rememberScrollState())
-            .padding(8.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.background)
+                .verticalScroll(rememberScrollState())
+                .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Recording Control Button
         RecordingButton(
             isRecording = isRecording,
             isSyncing = isSyncing,
             onStartRecording = onStartRecording,
-            onStopRecording = onStopRecording
+            onStopRecording = onStopRecording,
         )
 
         // Recording Status
@@ -141,28 +135,27 @@ fun MainScreen(
                 text = formatDuration(recordingDuration),
                 textAlign = TextAlign.Center,
                 color = Color.Red,
-                style = MaterialTheme.typography.title2
+                style = MaterialTheme.typography.title2,
             )
             Text(
                 text = "$dataPointsRecorded readings",
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption2
+                style = MaterialTheme.typography.caption2,
             )
         }
-
         // Sync Status
         if (isSyncing) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
                 )
                 Text(
                     text = "Syncing...",
-                    style = MaterialTheme.typography.caption2
+                    style = MaterialTheme.typography.caption2,
                 )
             }
         }
@@ -172,7 +165,7 @@ fun MainScreen(
                 text = result,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.caption2,
-                color = if (result.contains("failed", ignoreCase = true)) Color.Red else Color.Green
+                color = if (result.contains("failed", ignoreCase = true)) Color.Red else Color.Green,
             )
         }
 
@@ -182,32 +175,33 @@ fun MainScreen(
         Text(
             text = "Heart Rate:",
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.title3
+            style = MaterialTheme.typography.title3,
         )
         Text(
-            text = if (availability != null && heartRateBpm > 0) {
-                "%.0f BPM".format(heartRateBpm)
-            } else {
-                "-- BPM"
-            },
+            text =
+                if (availability != null && heartRateBpm > 0) {
+                    "%.0f BPM".format(heartRateBpm)
+                } else {
+                    "-- BPM"
+                },
             textAlign = TextAlign.Center,
         )
-
 
         // Gyroscope
         Text(
             text = "Gyroscope:",
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.title3
+            style = MaterialTheme.typography.title3,
         )
         Text(
-            text = "X:%.2f Y:%.2f Z:%.2f".format(
-                gyroscopeData[0],
-                gyroscopeData[1],
-                gyroscopeData[2]
-            ),
+            text =
+                "X:%.2f Y:%.2f Z:%.2f".format(
+                    gyroscopeData[0],
+                    gyroscopeData[1],
+                    gyroscopeData[2],
+                ),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.caption2
+            style = MaterialTheme.typography.caption2,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -217,7 +211,7 @@ fun MainScreen(
             Button(
                 onClick = onSyncAll,
                 modifier = Modifier.fillMaxWidth(0.8f),
-                colors = ButtonDefaults.secondaryButtonColors()
+                colors = ButtonDefaults.secondaryButtonColors(),
             ) {
                 Text("Sync All")
             }
@@ -232,7 +226,7 @@ fun RecordingButton(
     isRecording: Boolean,
     isSyncing: Boolean,
     onStartRecording: () -> Unit,
-    onStopRecording: () -> Unit
+    onStopRecording: () -> Unit,
 ) {
     Button(
         onClick = {
@@ -240,15 +234,16 @@ fun RecordingButton(
         },
         enabled = !isSyncing,
         modifier = Modifier.fillMaxWidth(0.8f),
-        colors = if (isRecording) {
-            ButtonDefaults.buttonColors(backgroundColor = Color.Red)
-        } else {
-            ButtonDefaults.primaryButtonColors()
-        }
+        colors =
+            if (isRecording) {
+                ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+            } else {
+                ButtonDefaults.primaryButtonColors()
+            },
     ) {
         Text(
             text = if (isRecording) "Stop Recording" else "Start Recording",
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }

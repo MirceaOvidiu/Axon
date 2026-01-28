@@ -25,7 +25,6 @@ class WearableDataSender(context: Context) {
         const val KEY_GYRO_Y = "gyro_y"
         const val KEY_GYRO_Z = "gyro_z"
         const val KEY_TIMESTAMP = "timestamp"
-        const val KEY_SESSION_JSON = "session_json"
     }
 
     suspend fun sendSensorData(
@@ -90,15 +89,4 @@ class WearableDataSender(context: Context) {
         }
     }
 
-    suspend fun checkConnection(): Boolean {
-        return try {
-            val nodes = nodeClient.connectedNodes.await()
-            val isConnected = nodes.isNotEmpty()
-            Log.d(TAG, "Connected nodes: ${nodes.size}")
-            isConnected
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to check connection", e)
-            false
-        }
-    }
 }

@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
 import com.axon.models.RecordingSession
-import com.axon.presentation.screens.dashboard.BottomNavigationBar
 import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
 import com.axon.presentation.screens.dashboard.primaryColor
@@ -50,7 +49,7 @@ import java.util.concurrent.TimeUnit
 fun SessionListScreen(
     viewModel: SessionViewModel,
     onNavigateBack: () -> Unit,
-    onSessionClick: (Long) -> Unit
+    onSessionClick: (Long) -> Unit,
 ) {
     val sessions by viewModel.sessions.collectAsState()
 
@@ -63,19 +62,19 @@ fun SessionListScreen(
                     title = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.pulse),
                                 contentDescription = "Sessions",
                                 tint = primaryColor,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(28.dp),
                             )
                             Text(
                                 text = "Recording Sessions",
                                 color = Color.White,
                                 fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     },
@@ -84,26 +83,27 @@ fun SessionListScreen(
                             Icon(
                                 painter = painterResource(id = R.drawable.outline_dashboard_24),
                                 contentDescription = "Back",
-                                tint = primaryColor
+                                tint = primaryColor,
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = backgroundDark
-                    )
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = backgroundDark,
+                        ),
                 )
             },
-            bottomBar = { BottomNavigationBar(onNavigateToWatchData = onNavigateBack) }
         ) { innerPadding ->
             if (sessions.isEmpty()) {
                 EmptySessionsView(modifier = Modifier.padding(innerPadding))
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { Spacer(modifier = Modifier.height(8.dp)) }
 
@@ -111,7 +111,7 @@ fun SessionListScreen(
                         SessionCard(
                             session = session,
                             onClick = { onSessionClick(session.id) },
-                            onDelete = { viewModel.deleteSession(session.id) }
+                            onDelete = { viewModel.deleteSession(session.id) },
                         )
                     }
 
@@ -127,26 +127,26 @@ fun EmptySessionsView(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
             painter = painterResource(id = R.drawable.baseline_health_and_safety_24),
             contentDescription = null,
             tint = textMutedDark,
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.size(64.dp),
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "No Sessions Yet",
             color = Color.White,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Start recording on your watch\nand sync to see your sessions here",
             color = textMutedDark,
-            fontSize = 14.sp
+            fontSize = 14.sp,
         )
     }
 }
@@ -155,44 +155,46 @@ fun EmptySessionsView(modifier: Modifier = Modifier) {
 fun SessionCard(
     session: RecordingSession,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     val duration = session.endTime - session.startTime
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = cardDark)
+        colors = CardDefaults.cardColors(containerColor = cardDark),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = dateFormat.format(Date(session.startTime)),
                         color = Color.White,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = formatDuration(duration),
                         color = primaryColor,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
                 }
 
@@ -200,17 +202,21 @@ fun SessionCard(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        text = "${timeFormat.format(Date(session.startTime))} - ${timeFormat.format(Date(session.endTime))}",
+                        text = "${timeFormat.format(Date(session.startTime))} - ${
+                            timeFormat.format(
+                                Date(session.endTime),
+                            )
+                        }",
                         color = textMutedDark,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
                     )
                     Text(
                         text = "${session.dataPointCount} readings",
                         color = textMutedDark,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
                     )
                 }
             }
@@ -219,7 +225,7 @@ fun SessionCard(
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_delete_24),
                     contentDescription = "Delete session",
-                    tint = Color(0xFFFF6B6B)
+                    tint = Color(0xFFFF6B6B),
                 )
             }
         }
