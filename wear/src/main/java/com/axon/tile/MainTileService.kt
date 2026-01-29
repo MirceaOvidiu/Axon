@@ -24,40 +24,37 @@ private const val RESOURCES_VERSION = "0"
  */
 @OptIn(ExperimentalHorologistApi::class)
 class MainTileService : SuspendingTileService() {
+    override suspend fun resourcesRequest(requestParams: RequestBuilders.ResourcesRequest) = resources()
 
-    override suspend fun resourcesRequest(
-        requestParams: RequestBuilders.ResourcesRequest
-    ) = resources()
-
-    override suspend fun tileRequest(
-        requestParams: RequestBuilders.TileRequest
-    ) = tile(requestParams, this)
+    override suspend fun tileRequest(requestParams: RequestBuilders.TileRequest) = tile(requestParams, this)
 }
 
-private fun resources(
-): ResourceBuilders.Resources {
-    return ResourceBuilders.Resources.Builder()
+private fun resources(): ResourceBuilders.Resources =
+    ResourceBuilders.Resources
+        .Builder()
         .setVersion(RESOURCES_VERSION)
         .build()
-}
 
 private fun tile(
     requestParams: RequestBuilders.TileRequest,
     context: Context,
 ): TileBuilders.Tile {
-    val singleTileTimeline = TimelineBuilders.Timeline.Builder()
-        .addTimelineEntry(
-            TimelineBuilders.TimelineEntry.Builder()
-                .setLayout(
-                    LayoutElementBuilders.Layout.Builder()
-                        .setRoot(tileLayout(requestParams, context))
-                        .build()
-                )
-                .build()
-        )
-        .build()
+    val singleTileTimeline =
+        TimelineBuilders.Timeline
+            .Builder()
+            .addTimelineEntry(
+                TimelineBuilders.TimelineEntry
+                    .Builder()
+                    .setLayout(
+                        LayoutElementBuilders.Layout
+                            .Builder()
+                            .setRoot(tileLayout(requestParams, context))
+                            .build(),
+                    ).build(),
+            ).build()
 
-    return TileBuilders.Tile.Builder()
+    return TileBuilders.Tile
+        .Builder()
         .setResourcesVersion(RESOURCES_VERSION)
         .setTileTimeline(singleTileTimeline)
         .build()
@@ -66,19 +63,21 @@ private fun tile(
 private fun tileLayout(
     requestParams: RequestBuilders.TileRequest,
     context: Context,
-): LayoutElementBuilders.LayoutElement {
-    return PrimaryLayout.Builder(requestParams.deviceConfiguration)
+): LayoutElementBuilders.LayoutElement =
+    PrimaryLayout
+        .Builder(requestParams.deviceConfiguration)
         .setResponsiveContentInsetEnabled(true)
         .setContent(
-            Text.Builder(context, "Hello World!")
+            Text
+                .Builder(context, "Hello World!")
                 .setColor(argb(Colors.DEFAULT.onSurface))
                 .setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                .build()
+                .build(),
         ).build()
-}
 
 @Preview(device = WearDevices.SMALL_ROUND)
 @Preview(device = WearDevices.LARGE_ROUND)
-fun tilePreview(context: Context) = TilePreviewData {
-    tile(it, context)
-}
+fun tilePreview(context: Context) =
+    TilePreviewData {
+        tile(it, context)
+    }

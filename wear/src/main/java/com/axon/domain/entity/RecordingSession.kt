@@ -11,5 +11,5 @@ data class RecordingSession(
     val endTime: Long? = null,
     val isActive: Boolean = true,
     val isSynced: Boolean = false,
-    val syncedAt: Long? = null
+    val syncedAt: Long? = null,
 )

@@ -5,13 +5,15 @@ import com.axon.data.source.manager.HealthServicesManager
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-class HealthServicesDataSourceAdapter @Inject constructor(
-    private val manager: HealthServicesManager,
-) : HealthServicesDataSource {
-    override val heartRateBpm: StateFlow<Double> = manager.heartRateBpm
-    override val availability: StateFlow<Availability?> = manager.availability
+class HealthServicesDataSourceAdapter
+    @Inject
+    constructor(
+        private val manager: HealthServicesManager,
+    ) : HealthServicesDataSource {
+        override val heartRateBpm: StateFlow<Double> = manager.heartRateBpm
+        override val availability: StateFlow<Availability?> = manager.availability
 
-    override fun register() = manager.registerForHeartRateData()
+        override fun register() = manager.registerForHeartRateData()
 
-    override suspend fun unregister() = manager.unregisterForHeartRateData()
-}
+        override suspend fun unregister() = manager.unregisterForHeartRateData()
+    }
