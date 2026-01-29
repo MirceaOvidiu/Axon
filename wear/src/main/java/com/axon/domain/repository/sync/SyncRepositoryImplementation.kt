@@ -1,7 +1,7 @@
 package com.axon.domain.repository.sync
 
 import android.content.Context
-import com.axon.data.source.datalayer.WearableDataSender
+import com.axon.data.datalayer.WearableDataSender
 import com.axon.domain.models.SessionTransferData
 
 class SyncRepositoryImplementation(

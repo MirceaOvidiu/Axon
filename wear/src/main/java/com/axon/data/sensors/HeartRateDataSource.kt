@@ -1,7 +1,7 @@
-package com.axon.data.source.sensors
+package com.axon.data.sensors
 
 import androidx.health.services.client.data.Availability
-import com.axon.data.source.manager.HealthServicesManager
+import com.axon.data.manager.HealthServicesManager
 import kotlinx.coroutines.flow.StateFlow
 
 interface HeartRateDataSource {

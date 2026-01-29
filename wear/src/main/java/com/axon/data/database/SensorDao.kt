@@ -1,4 +1,4 @@
-package com.axon.data.source.database
+package com.axon.data.database
 
 import androidx.room.Dao
 import androidx.room.Insert

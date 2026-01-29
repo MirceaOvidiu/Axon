@@ -72,33 +72,32 @@ fun TopHeader() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_health_and_safety_24),
-                contentDescription = "Health Icon",
-                tint = primaryColor,
-                modifier = Modifier.size(36.dp),
-            )
-            IconButton(onClick = { /* TODO: Profile action */ }) {
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start,
+            ){
+                Text(
+                    text = "Good Morning Varu'!",
+                    color = Color.White,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Hai boss ca se poate.",
+                    color = textMutedDark,
+                    fontSize = 14.sp,
+                )
+            }
+            IconButton(
+                onClick = { /* TODO: Profile action */ }) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_person_24),
                     contentDescription = "Profile",
                     tint = Color.White,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(40.dp),
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Good Morning Varu'",
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = "Hai boss ca se poate.",
-            color = textMutedDark,
-            fontSize = 14.sp,
-        )
     }
 }
 

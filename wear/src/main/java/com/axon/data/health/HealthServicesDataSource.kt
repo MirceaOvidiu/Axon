@@ -1,4 +1,4 @@
-package com.axon.data.source.health
+package com.axon.data.health
 
 import androidx.health.services.client.data.Availability
 import kotlinx.coroutines.flow.StateFlow

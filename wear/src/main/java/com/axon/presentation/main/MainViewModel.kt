@@ -3,8 +3,8 @@ package com.axon.presentation.main
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.axon.data.source.health.HealthServicesDataSource
-import com.axon.data.source.sensors.GyroDataSource
+import com.axon.data.health.HealthServicesDataSource
+import com.axon.data.sensors.GyroDataSource
 import com.axon.domain.usecase.RecordingUseCase
 import com.axon.domain.usecase.SyncUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,10 +39,6 @@ class MainViewModel
             startLiveSensorSync()
         }
 
-        // -------------------------------------------------------------------------
-        // Intent Handler - Single entry point for all user actions
-        // -------------------------------------------------------------------------
-
         fun onIntent(intent: MainIntent) {
             when (intent) {
                 MainIntent.StartRecording -> startRecording()
@@ -52,10 +48,6 @@ class MainViewModel
                 MainIntent.ClearSyncResult -> clearSyncResult()
             }
         }
-
-        // -------------------------------------------------------------------------
-        // Sensor Management
-        // -------------------------------------------------------------------------
 
         private fun startSensors() {
             healthDataSource.register()
@@ -92,10 +84,6 @@ class MainViewModel
                     }
                 }
         }
-
-        // -------------------------------------------------------------------------
-        // Recording
-        // -------------------------------------------------------------------------
 
         private fun checkForActiveSession() {
             viewModelScope.launch {

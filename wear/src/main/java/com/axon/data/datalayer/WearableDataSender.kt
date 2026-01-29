@@ -1,4 +1,4 @@
-package com.axon.data.source.datalayer
+package com.axon.data.datalayer
 
 import android.content.Context
 import android.util.Log
@@ -36,7 +36,7 @@ class WearableDataSender(
         gyroZ: Float,
     ) {
         try {
-            Log.d(TAG, "▶▶▶ Preparing to send data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
+            Log.d(TAG, "Sent data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
 
             val putDataReq =
                 PutDataMapRequest
@@ -50,11 +50,8 @@ class WearableDataSender(
                     }.asPutDataRequest()
 
             putDataReq.setUrgent()
-
-            val result = dataClient.putDataItem(putDataReq).await()
-            Log.d(TAG, "▶▶▶ DATA SENT SUCCESSFULLY! URI: ${result.uri}")
         } catch (e: Exception) {
-            Log.e(TAG, "✗✗✗ FAILED to send sensor data", e)
+            Log.e(TAG, "FAILED to send sensor data", e)
         }
     }
 

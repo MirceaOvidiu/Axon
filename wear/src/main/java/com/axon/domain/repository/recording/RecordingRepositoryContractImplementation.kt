@@ -2,8 +2,8 @@ package com.axon.domain.repository.recording
 
 import android.content.Context
 import android.util.Log
-import com.axon.data.source.database.AppDatabase
-import com.axon.data.source.database.SensorDao
+import com.axon.data.database.AppDatabase
+import com.axon.data.database.SensorDao
 import com.axon.domain.entity.RecordingSession
 import com.axon.domain.entity.SensorData
 import com.axon.domain.models.SessionTransferData

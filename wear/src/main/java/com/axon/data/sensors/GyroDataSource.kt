@@ -1,4 +1,4 @@
-package com.axon.data.source.sensors
+package com.axon.data.sensors
 
 import android.content.Context
 import android.hardware.Sensor

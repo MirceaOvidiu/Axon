@@ -1,4 +1,4 @@
-package com.axon.data.source.database
+package com.axon.data.database
 
 import android.content.Context
 import androidx.room.Database
