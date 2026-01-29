@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="wear">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-01-28T17:00:55.304801500Z">
+        <DropdownSelection timestamp="2026-01-29T11:53:02.441083600Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=48251JEAVW060V" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=RZCXC194KJE" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -15,20 +15,14 @@
       </SelectionState>
       <SelectionState runConfigName="mobile">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-01-28T17:00:59.850773400Z">
+        <DropdownSelection timestamp="2026-01-29T11:58:19.764242100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=48251JEAVW060V" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=RZCXC194KJE" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
-      </SelectionState>
-      <SelectionState runConfigName="wear.MainComplicationService">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="RecoveryDashboardScreenPreview">
-        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
   </component>

@@ -10,7 +10,9 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import kotlinx.coroutines.tasks.await
 
-class WearableDataSender(context: Context) {
+class WearableDataSender(
+    context: Context,
+) {
     private val dataClient: DataClient = Wearable.getDataClient(context)
     private val nodeClient = Wearable.getNodeClient(context)
     private val messageClient: MessageClient = Wearable.getMessageClient(context)
@@ -31,18 +33,21 @@ class WearableDataSender(context: Context) {
         heartRate: Double,
         gyroX: Float,
         gyroY: Float,
-        gyroZ: Float
+        gyroZ: Float,
     ) {
         try {
             Log.d(TAG, "▶▶▶ Preparing to send data: HR=$heartRate, Gyro=($gyroX, $gyroY, $gyroZ)")
 
-            val putDataReq = PutDataMapRequest.create(SENSOR_DATA_PATH).apply {
-                dataMap.putDouble(KEY_HEART_RATE, heartRate)
-                dataMap.putFloat(KEY_GYRO_X, gyroX)
-                dataMap.putFloat(KEY_GYRO_Y, gyroY)
-                dataMap.putFloat(KEY_GYRO_Z, gyroZ)
-                dataMap.putLong(KEY_TIMESTAMP, System.currentTimeMillis())
-            }.asPutDataRequest()
+            val putDataReq =
+                PutDataMapRequest
+                    .create(SENSOR_DATA_PATH)
+                    .apply {
+                        dataMap.putDouble(KEY_HEART_RATE, heartRate)
+                        dataMap.putFloat(KEY_GYRO_X, gyroX)
+                        dataMap.putFloat(KEY_GYRO_Y, gyroY)
+                        dataMap.putFloat(KEY_GYRO_Z, gyroZ)
+                        dataMap.putLong(KEY_TIMESTAMP, System.currentTimeMillis())
+                    }.asPutDataRequest()
 
             putDataReq.setUrgent()
 
@@ -88,5 +93,4 @@ class WearableDataSender(context: Context) {
             false
         }
     }
-
 }

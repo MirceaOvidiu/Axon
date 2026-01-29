@@ -34,9 +34,7 @@ object Module {
 
     @Provides
     @Singleton
-    fun provideHealthServicesDataSource(
-        manager: HealthServicesManager,
-    ): HealthServicesDataSource = HealthServicesDataSourceAdapter(manager)
+    fun provideHealthServicesDataSource(manager: HealthServicesManager): HealthServicesDataSource = HealthServicesDataSourceAdapter(manager)
 
     @Provides
     @Singleton

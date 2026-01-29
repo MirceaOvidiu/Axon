@@ -15,40 +15,49 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Green,
-    background = DarkBackground,
-    surface = DarkGreen,
-    onPrimary = TextColorDark,
-    onBackground = TextColorDark,
-    onSurface = TextColorDark,
-    secondary = SecondaryTextColor
-)
+private val DarkColorScheme =
+    darkColorScheme(
+        primary = Green,
+        background = DarkBackground,
+        surface = DarkGreen,
+        onPrimary = TextColorDark,
+        onBackground = TextColorDark,
+        onSurface = TextColorDark,
+        secondary = SecondaryTextColor,
+    )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Green,
-    background = LightBackground,
-    surface = LightBackground,
-    onPrimary = TextColorLight,
-    onBackground = TextColorLight,
-    onSurface = TextColorLight,
-    secondary = SecondaryTextColor
-)
+private val LightColorScheme =
+    lightColorScheme(
+        primary = Green,
+        background = LightBackground,
+        surface = LightBackground,
+        onPrimary = TextColorLight,
+        onBackground = TextColorLight,
+        onSurface = TextColorLight,
+        secondary = SecondaryTextColor,
+    )
 
 @Composable
 fun AxonTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    val colorScheme =
+        when {
+            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                val context = LocalContext.current
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            }
+
+            darkTheme -> {
+                DarkColorScheme
+            }
+
+            else -> {
+                LightColorScheme
+            }
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -61,6 +70,6 @@ fun AxonTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
-        content = content
+        content = content,
     )
 }

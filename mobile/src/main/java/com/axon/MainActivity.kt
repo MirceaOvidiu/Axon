@@ -3,7 +3,6 @@ package com.axon
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -15,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,11 +27,10 @@ import com.axon.presentation.screens.sessions.SessionDetailScreen
 import com.axon.presentation.screens.sessions.SessionListScreen
 import com.axon.presentation.screens.sessions.SessionViewModel
 import com.axon.presentation.theme.AxonTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val sensorDataViewModel: SensorDataViewModel by viewModels()
-    private val sessionViewModel: SessionViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -136,14 +135,16 @@ class MainActivity : ComponentActivity() {
                             RecoveryDashboardScreen()
                         }
                         composable("watch") {
+                            val viewModel: SensorDataViewModel = hiltViewModel()
                             WatchDataScreen(
-                                viewModel = sensorDataViewModel,
+                                viewModel = viewModel,
                                 onNavigateBack = { navController.popBackStack() },
                             )
                         }
                         composable("sessions") {
+                            val viewModel: SessionViewModel = hiltViewModel()
                             SessionListScreen(
-                                viewModel = sessionViewModel,
+                                viewModel = viewModel,
                                 onNavigateBack = { navController.popBackStack() },
                                 onSessionClick = { sessionId ->
                                     navController.navigate("session_detail/$sessionId")
@@ -153,12 +154,13 @@ class MainActivity : ComponentActivity() {
                         composable("session_detail/{sessionId}") { backStackEntry ->
                             val sessionId =
                                 backStackEntry.arguments?.getString("sessionId")?.toLongOrNull()
+                            val viewModel: SessionViewModel = hiltViewModel()
                             sessionId?.let {
                                 SessionDetailScreen(
-                                    viewModel = sessionViewModel,
+                                    viewModel = viewModel,
                                     sessionId = it,
                                     onNavigateBack = {
-                                        sessionViewModel.clearSelectedSession()
+                                        viewModel.clearSelectedSession()
                                         navController.popBackStack()
                                     },
                                 )

@@ -10,7 +10,7 @@ data class SessionTransferData(
     val sessionId: Long,
     val startTime: Long,
     val endTime: Long,
-    val sensorReadings: List<SensorReading>
+    val sensorReadings: List<SensorReading>,
 )
 
 data class SensorReading(
@@ -18,16 +18,17 @@ data class SensorReading(
     val heartRate: Double?,
     val gyroX: Float?,
     val gyroY: Float?,
-    val gyroZ: Float?
+    val gyroZ: Float?,
 )
 
 /**
  * Extension function to convert SensorData to SensorReading for transfer
  */
-fun SensorData.toSensorReading() = SensorReading(
-    timestamp = timestamp,
-    heartRate = heartRate,
-    gyroX = gyroX,
-    gyroY = gyroY,
-    gyroZ = gyroZ
-)
+fun SensorData.toSensorReading() =
+    SensorReading(
+        timestamp = timestamp,
+        heartRate = heartRate,
+        gyroX = gyroX,
+        gyroY = gyroY,
+        gyroZ = gyroZ,
+    )

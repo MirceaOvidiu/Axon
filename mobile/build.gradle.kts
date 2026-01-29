@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -62,6 +63,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 
     implementation(libs.play.services.wearable)
     implementation(libs.jetbrains.kotlinx.coroutines.play.services)

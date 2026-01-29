@@ -12,10 +12,10 @@ import androidx.room.PrimaryKey
             entity = RecordingSession::class,
             parentColumns = ["id"],
             childColumns = ["sessionId"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index("sessionId")]
+    indices = [Index("sessionId")],
 )
 data class SensorData(
     @PrimaryKey(autoGenerate = true)
@@ -26,5 +26,5 @@ data class SensorData(
     val gyroX: Float?,
     val gyroY: Float?,
     val gyroZ: Float?,
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
 )

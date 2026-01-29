@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
-import com.axon.models.RecordingSession
+import com.axon.domain.model.Session
 import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
 import com.axon.presentation.screens.dashboard.primaryColor
@@ -153,7 +153,7 @@ fun EmptySessionsView(modifier: Modifier = Modifier) {
 
 @Composable
 fun SessionCard(
-    session: RecordingSession,
+    session: Session,
     onClick: () -> Unit,
     onDelete: () -> Unit,
 ) {

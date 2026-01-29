@@ -1,33 +1,46 @@
 package com.axon.presentation.screens
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.axon.data.WearableDataService
+import com.axon.domain.repository.WearableRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SensorDataViewModel(application: Application) : AndroidViewModel(application) {
-    private val wearableDataService = WearableDataService(application)
+@HiltViewModel
+class SensorDataViewModel
+    @Inject
+    constructor(
+        private val wearableRepository: WearableRepository,
+    ) : ViewModel() {
+        val isConnected: StateFlow<Boolean> =
+            wearableRepository
+                .isDeviceConnected()
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = false,
+                )
 
-    val isConnected: StateFlow<Boolean> = wearableDataService.isConnected
-    val connectedModelName: StateFlow<String?> = wearableDataService.connectedNodeName
+        val connectedModelName: StateFlow<String?> =
+            wearableRepository
+                .getConnectedNodeName()
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = null,
+                )
 
-    init {
-        wearableDataService.startListening()
-        viewModelScope.launch {
-            wearableDataService.requestDataSync()
+        init {
+            refreshConnection()
+        }
+
+        fun refreshConnection() {
+            viewModelScope.launch {
+                wearableRepository.checkConnection()
+            }
         }
     }
-
-    fun refreshConnection() {
-        viewModelScope.launch {
-            wearableDataService.requestDataSync()
-        }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        wearableDataService.stopListening()
-    }
-}
