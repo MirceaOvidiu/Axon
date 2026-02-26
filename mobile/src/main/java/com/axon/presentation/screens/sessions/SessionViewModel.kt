@@ -26,6 +26,17 @@ class SessionViewModel
             private const val TAG = "SessionViewModel"
         }
 
+        init {
+            // Sync cloud sessions when the view model is created
+            viewModelScope.launch {
+                try {
+                    sessionRepository.syncSessionsFromCloud()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Cloud sync failed", e)
+                }
+            }
+        }
+
         // All sessions list
         val sessions: StateFlow<List<Session>> =
             sessionRepository

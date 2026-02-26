@@ -1,15 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
-    id("com.google.dagger.hilt.android") version "2.59"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.axon"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.axon"

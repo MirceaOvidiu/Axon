@@ -2,44 +2,46 @@ package com.axon.data.mapper
 
 import com.axon.data.local.entity.SensorDataEntity
 import com.axon.data.local.entity.SessionEntity
-import com.axon.domain.model.SensorData
 import com.axon.domain.model.Session
 import com.axon.domain.model.SessionTransferData
 
 fun SessionEntity.toDomain(): Session =
     Session(
         id = this.id,
+        firestoreId = this.firestoreId,
+        userId = this.userId,
         startTime = this.startTime,
         endTime = this.endTime,
         receivedAt = this.receivedAt,
         dataPointCount = this.dataPointCount,
     )
 
-// Mapper: Domain -> Entity
 fun Session.toEntity(): SessionEntity =
     SessionEntity(
         id = this.id,
+        firestoreId = this.firestoreId,
+        userId = this.userId,
         startTime = this.startTime,
         endTime = this.endTime,
         receivedAt = this.receivedAt,
         dataPointCount = this.dataPointCount,
     )
 
-fun SessionTransferData.toDomainSession(): Session =
+fun SessionTransferData.toDomainSession(userId: String): Session =
     Session(
         id = this.sessionId,
+        userId = userId,
         startTime = this.startTime,
         endTime = this.endTime,
-        receivedAt = System.currentTimeMillis(), // We set the receipt time now
+        receivedAt = System.currentTimeMillis(),
         dataPointCount = this.sensorReadings.size,
     )
 
-// Helper to map the list of readings inside the transfer data to SensorDataEntity for DB insertion
-fun SessionTransferData.toSensorDataEntities(): List<SensorDataEntity> =
+fun SessionTransferData.toSensorDataEntities(sessionId: Long): List<SensorDataEntity> =
     this.sensorReadings.map { reading ->
         SensorDataEntity(
-            id = 0, // 0 tells Room to auto-generate the ID
-            sessionId = this.sessionId,
+            id = 0,
+            sessionId = sessionId,
             timestamp = reading.timestamp,
             heartRate = reading.heartRate ?: 0.0,
             gyroX = reading.gyroX?.toDouble() ?: 0.0,

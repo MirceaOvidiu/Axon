@@ -3,6 +3,7 @@ package com.axon.presentation.screens.auth
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,7 +55,8 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.axon.R
 import com.axon.domain.model.AuthState
-import com.axon.presentation.screens.dashboard.cardDark
+import com.axon.presentation.components.LogoSize
+import com.axon.presentation.components.MinimalisticAxonLogo
 import com.axon.presentation.screens.dashboard.primaryColor
 import com.axon.presentation.theme.AxonTheme
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -119,97 +124,141 @@ fun AuthScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF0A0E14),
+                            Color(0xFF151C25),
+                            Color(0xFF0A0E14)
+                        )
+                    )
+                )
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = cardDark),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
+                Spacer(modifier = Modifier.weight(0.1f))
+
+                // Minimalistic Logo Section
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(bottom = 48.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.pulse),
-                        contentDescription = "Axon Logo",
-                        modifier = Modifier.size(80.dp)
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    MinimalisticAxonLogo(
+                        textColor = Color.White,
+                        size = LogoSize.LARGE
                     )
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Axon",
-                        color = primaryColor,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        text = if (showForgotPassword) "Reset Password"
-                               else if (isSignUp) "Create Account"
-                               else "Welcome Back",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(bottom = 32.dp)
-                    )
-
-                    if (showForgotPassword) {
-                        ForgotPasswordForm(
-                            email = email,
-                            onEmailChange = { email = it },
-                            onResetPassword = { viewModel.resetPassword(email) },
-                            onBackToSignIn = {
-                                showForgotPassword = false
-                                viewModel.clearError()
-                            },
-                            isLoading = uiState.isLoading,
-                            resetEmailSent = uiState.resetEmailSent
-                        )
-                    } else {
-                        AuthForm(
-                            isSignUp = isSignUp,
-                            email = email,
-                            password = password,
-                            displayName = displayName,
-                            onEmailChange = { email = it },
-                            onPasswordChange = { password = it },
-                            onDisplayNameChange = { displayName = it },
-                            onSubmit = {
-                                if (isSignUp) {
-                                    viewModel.signUpWithEmailAndPassword(email, password, displayName)
-                                } else {
-                                    viewModel.signInWithEmailAndPassword(email, password)
-                                }
-                            },
-                            onToggleMode = {
-                                isSignUp = !isSignUp
-                                viewModel.clearError()
-                            },
-                            onForgotPassword = {
-                                showForgotPassword = true
-                                viewModel.clearError()
-                            },
-                            onGoogleSignIn = ::launchGoogleSignIn,
-                            isLoading = uiState.isLoading
-                        )
-                    }
-
-                    uiState.errorMessage?.let { error ->
-                        Spacer(modifier = Modifier.height(16.dp))
+                // Auth Form Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF151C25).copy(alpha = 0.8f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
-                            text = error,
-                            color = Color.Red,
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            text = if (showForgotPassword) "Reset Password"
+                                   else if (isSignUp) "Join Axon"
+                                   else "Welcome Back",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Light,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
+
+                        Text(
+                            text = if (showForgotPassword) "Enter your email to reset password"
+                                   else if (isSignUp) "Create your account to get started"
+                                   else "Sign in to continue your journey",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Light,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(bottom = 32.dp)
+                        )
+
+                        if (showForgotPassword) {
+                            ForgotPasswordForm(
+                                email = email,
+                                onEmailChange = { email = it },
+                                onResetPassword = { viewModel.resetPassword(email) },
+                                onBackToSignIn = {
+                                    showForgotPassword = false
+                                    viewModel.clearError()
+                                },
+                                isLoading = uiState.isLoading,
+                                resetEmailSent = uiState.resetEmailSent
+                            )
+                        } else {
+                            AuthForm(
+                                isSignUp = isSignUp,
+                                email = email,
+                                password = password,
+                                displayName = displayName,
+                                onEmailChange = { email = it },
+                                onPasswordChange = { password = it },
+                                onDisplayNameChange = { displayName = it },
+                                onSubmit = {
+                                    if (isSignUp) {
+                                        viewModel.signUpWithEmailAndPassword(email, password, displayName)
+                                    } else {
+                                        viewModel.signInWithEmailAndPassword(email, password)
+                                    }
+                                },
+                                onToggleMode = {
+                                    isSignUp = !isSignUp
+                                    viewModel.clearError()
+                                },
+                                onForgotPassword = {
+                                    showForgotPassword = true
+                                    viewModel.clearError()
+                                },
+                                onGoogleSignIn = ::launchGoogleSignIn,
+                                isLoading = uiState.isLoading
+                            )
+                        }
+
+                        uiState.errorMessage?.let { error ->
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Card(
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Red.copy(alpha = 0.1f)
+                                ),
+                                border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                            ) {
+                                Text(
+                                    text = error,
+                                    color = Color.Red.copy(alpha = 0.9f),
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                )
+                            }
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.weight(0.1f))
             }
         }
     }
@@ -232,70 +281,87 @@ private fun AuthForm(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        if (isSignUp) {
+        // Input Fields
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (isSignUp) {
+                OutlinedTextField(
+                    value = displayName,
+                    onValueChange = onDisplayNameChange,
+                    label = { Text("Display Name", color = Color.Gray, fontSize = 14.sp) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = Color.Gray
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
             OutlinedTextField(
-                value = displayName,
-                onValueChange = onDisplayNameChange,
-                label = { Text("Display Name", color = Color.Gray) },
+                value = email,
+                onValueChange = onEmailChange,
+                label = { Text("Email", color = Color.Gray, fontSize = 14.sp) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
                     focusedBorderColor = primaryColor,
-                    unfocusedBorderColor = Color.Gray
-                )
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                    focusedLabelColor = primaryColor,
+                    unfocusedLabelColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(12.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = onPasswordChange,
+                label = { Text("Password", color = Color.Gray, fontSize = 14.sp) },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = primaryColor,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                    focusedLabelColor = primaryColor,
+                    unfocusedLabelColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
         }
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            label = { Text("Email", color = Color.Gray) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            label = { Text("Password", color = Color.Gray) },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray
-            )
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Email / Password submit button
+        // Primary Action Button
         Button(
             onClick = onSubmit,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
-            shape = RoundedCornerShape(8.dp),
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = primaryColor,
+                disabledContainerColor = primaryColor.copy(alpha = 0.5f)
+            ),
+            shape = RoundedCornerShape(16.dp),
             enabled = !isLoading && email.isNotBlank() && password.isNotBlank() &&
                      (!isSignUp || displayName.isNotBlank())
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
             } else {
                 Text(
                     text = if (isSignUp) "Create Account" else "Sign In",
@@ -306,65 +372,78 @@ private fun AuthForm(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
         // Divider with "OR" label
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.Gray)
-            Text(
-                text = "  OR  ",
-                color = Color.Gray,
-                fontSize = 13.sp
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                color = Color.Gray.copy(alpha = 0.3f)
             )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.Gray)
+            Text(
+                text = "  or  ",
+                color = Color.Gray.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Light
+            )
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                color = Color.Gray.copy(alpha = 0.3f)
+            )
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
 
         // Google Sign-In button
         OutlinedButton(
             onClick = onGoogleSignIn,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.Gray),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f)),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color.White,
+                disabledContentColor = Color.Gray
+            ),
             enabled = !isLoading
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_google),
                 contentDescription = "Google logo",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "Continue with Google",
                 color = Color.White,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Light
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
+        // Bottom Actions
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
         ) {
             TextButton(onClick = onToggleMode) {
                 Text(
-                    text = if (isSignUp) "Already have an account?" else "Need an account?",
-                    color = primaryColor
+                    text = if (isSignUp) "Sign In" else "Sign Up",
+                    color = primaryColor.copy(alpha = 0.8f),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Light
                 )
             }
 
             if (!isSignUp) {
                 TextButton(onClick = onForgotPassword) {
-                    Text(text = "Forgot Password?", color = primaryColor)
+                    Text(
+                        text = "Forgot Password?",
+                        color = primaryColor.copy(alpha = 0.8f),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Light
+                    )
                 }
             }
         }
@@ -382,57 +461,72 @@ private fun ForgotPasswordForm(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         if (resetEmailSent) {
-            Text(
-                text = "Password reset email sent! Check your inbox.",
-                color = Color.Green,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Green.copy(alpha = 0.1f)
+                ),
+                border = BorderStroke(1.dp, Color.Green.copy(alpha = 0.3f))
+            ) {
+                Text(
+                    text = "✓ Password reset email sent!\nCheck your inbox and follow the instructions.",
+                    color = Color.Green.copy(alpha = 0.9f),
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(20.dp)
+                )
+            }
         } else {
             Text(
-                text = "Enter your email address and we'll send you a password reset link.",
-                color = Color.Gray,
+                text = "Enter your email address and we'll send you a link to reset your password.",
+                color = Color.White.copy(alpha = 0.7f),
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp)
+                fontWeight = FontWeight.Light,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
 
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
-            label = { Text("Email", color = Color.Gray) },
+            label = { Text("Email", color = Color.Gray, fontSize = 14.sp) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray
+                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                focusedLabelColor = primaryColor,
+                unfocusedLabelColor = Color.Gray
             ),
+            shape = RoundedCornerShape(12.dp),
             enabled = !resetEmailSent
         )
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         if (!resetEmailSent) {
             Button(
                 onClick = onResetPassword,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
-                shape = RoundedCornerShape(8.dp),
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primaryColor,
+                    disabledContainerColor = primaryColor.copy(alpha = 0.5f)
+                ),
+                shape = RoundedCornerShape(16.dp),
                 enabled = !isLoading && email.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         color = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
                     )
                 } else {
                     Text(
@@ -443,14 +537,17 @@ private fun ForgotPasswordForm(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        TextButton(onClick = onBackToSignIn) {
+        TextButton(
+            onClick = onBackToSignIn,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
             Text(
-                text = "Back to Sign In",
-                color = primaryColor
+                text = "← Back to Sign In",
+                color = primaryColor.copy(alpha = 0.8f),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Light
             )
         }
     }

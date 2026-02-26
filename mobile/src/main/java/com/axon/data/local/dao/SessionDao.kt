@@ -17,6 +17,14 @@ interface SessionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllSensorData(sensorDataList: List<SensorDataEntity>)
 
+    // Get all sessions for a specific user (sorted by most recent)
+    @Query("SELECT * FROM recording_sessions WHERE userId = :userId ORDER BY startTime DESC")
+    fun getAllSessionsForUserFlow(userId: String): Flow<List<SessionEntity>>
+
+    @Query("SELECT * FROM recording_sessions WHERE userId = :userId ORDER BY startTime DESC")
+    suspend fun getAllSessionsForUser(userId: String): List<SessionEntity>
+
+    // Legacy: Get all sessions (for migration purposes)
     @Query("SELECT * FROM recording_sessions ORDER BY startTime DESC")
     fun getAllSessionsFlow(): Flow<List<SessionEntity>>
 
@@ -26,11 +34,24 @@ interface SessionDao {
     @Query("SELECT * FROM recording_sessions WHERE id = :sessionId")
     suspend fun getSession(sessionId: Long): SessionEntity?
 
+    @Query("SELECT * FROM recording_sessions WHERE id = :sessionId AND userId = :userId")
+    suspend fun getSessionForUser(sessionId: Long, userId: String): SessionEntity?
+
+    @Query("SELECT * FROM recording_sessions WHERE firestoreId = :firestoreId")
+    suspend fun getSessionByFirestoreId(firestoreId: String): SessionEntity?
+
     @Query("SELECT * FROM recording_sessions WHERE id = :sessionId")
     fun getSessionFlow(sessionId: Long): Flow<SessionEntity?>
 
     @Query("DELETE FROM recording_sessions WHERE id = :sessionId")
     suspend fun deleteSession(sessionId: Long)
+
+    @Query("DELETE FROM recording_sessions WHERE id = :sessionId AND userId = :userId")
+    suspend fun deleteSessionForUser(sessionId: Long, userId: String)
+
+    // Delete all sessions for a user (for account deletion)
+    @Query("DELETE FROM recording_sessions WHERE userId = :userId")
+    suspend fun deleteAllSessionsForUser(userId: String)
 
     // Sensor data operations
     @Query("SELECT * FROM sensor_data WHERE sessionId = :sessionId ORDER BY timestamp ASC")

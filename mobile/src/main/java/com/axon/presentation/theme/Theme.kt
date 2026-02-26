@@ -62,14 +62,16 @@ fun AxonTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = !darkTheme
+            // Use WindowCompat.setDecorFitsSystemWindows for modern status bar handling
+            WindowCompat.setDecorFitsSystemWindows(window, false)
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography,
+        typography = EnhancedTypography,
         content = content,
     )
 }
