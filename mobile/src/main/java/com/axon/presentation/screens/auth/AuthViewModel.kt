@@ -2,9 +2,7 @@ package com.axon.presentation.screens.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.axon.domain.model.AuthResult
 import com.axon.domain.model.AuthState
-import com.axon.domain.model.User
 import com.axon.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +21,17 @@ class AuthViewModel @Inject constructor(
 
     val authState = authRepository.authState
     val currentUser = authRepository.currentUser
+
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            val result = authRepository.signInWithGoogleIdToken(idToken)
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = if (!result.isSuccess) result.errorMessage else null
+            )
+        }
+    }
 
     fun signInWithEmailAndPassword(email: String, password: String) {
         viewModelScope.launch {

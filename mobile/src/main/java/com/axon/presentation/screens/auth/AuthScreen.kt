@@ -1,5 +1,7 @@
 package com.axon.presentation.screens.auth
 
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -18,7 +21,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -28,23 +32,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import com.axon.R
 import com.axon.domain.model.AuthState
 import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
 import com.axon.presentation.screens.dashboard.primaryColor
 import com.axon.presentation.theme.AxonTheme
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
@@ -54,14 +67,46 @@ fun AuthScreen(
     val uiState by viewModel.uiState.collectAsState()
     val authState by viewModel.authState.collectAsState()
 
-    // Navigate to dashboard if authenticated
     when (authState) {
         AuthState.AUTHENTICATED -> {
             onNavigateToDashboard()
             return
         }
-        else -> {
-            // Show auth screen
+        else -> {}
+    }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // Credential Manager Google Sign-In
+    val credentialManager = remember { CredentialManager.create(context) }
+    val webClientId = stringResource(R.string.default_web_client_id)
+
+    fun launchGoogleSignIn() {
+        scope.launch {
+            try {
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(webClientId)
+                    .setAutoSelectEnabled(true)
+                    .build()
+
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(context, request)
+                val credential = result.credential
+
+                if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data)
+                    viewModel.signInWithGoogle(googleIdToken.idToken)
+                } else {
+                    Toast.makeText(context, "Unexpected credential type", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: GetCredentialException) {
+                Toast.makeText(context, e.message ?: "Google Sign-In failed", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -90,7 +135,6 @@ fun AuthScreen(
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Logo and Title
                     Image(
                         painter = painterResource(id = R.drawable.pulse),
                         contentDescription = "Axon Logo",
@@ -119,9 +163,7 @@ fun AuthScreen(
                         ForgotPasswordForm(
                             email = email,
                             onEmailChange = { email = it },
-                            onResetPassword = {
-                                viewModel.resetPassword(email)
-                            },
+                            onResetPassword = { viewModel.resetPassword(email) },
                             onBackToSignIn = {
                                 showForgotPassword = false
                                 viewModel.clearError()
@@ -153,11 +195,11 @@ fun AuthScreen(
                                 showForgotPassword = true
                                 viewModel.clearError()
                             },
+                            onGoogleSignIn = ::launchGoogleSignIn,
                             isLoading = uiState.isLoading
                         )
                     }
 
-                    // Error Message
                     uiState.errorMessage?.let { error ->
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
@@ -186,6 +228,7 @@ private fun AuthForm(
     onSubmit: () -> Unit,
     onToggleMode: () -> Unit,
     onForgotPassword: () -> Unit,
+    onGoogleSignIn: () -> Unit,
     isLoading: Boolean
 ) {
     Column(
@@ -241,6 +284,7 @@ private fun AuthForm(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Email / Password submit button
         Button(
             onClick = onSubmit,
             modifier = Modifier
@@ -252,10 +296,7 @@ private fun AuthForm(
                      (!isSignUp || displayName.isNotBlank())
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
             } else {
                 Text(
                     text = if (isSignUp) "Create Account" else "Sign In",
@@ -266,7 +307,50 @@ private fun AuthForm(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Divider with "OR" label
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.Gray)
+            Text(
+                text = "  OR  ",
+                color = Color.Gray,
+                fontSize = 13.sp
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.Gray)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Google Sign-In button
+        OutlinedButton(
+            onClick = onGoogleSignIn,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, Color.Gray),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            enabled = !isLoading
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_google),
+                contentDescription = "Google logo",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = "Continue with Google",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -281,10 +365,7 @@ private fun AuthForm(
 
             if (!isSignUp) {
                 TextButton(onClick = onForgotPassword) {
-                    Text(
-                        text = "Forgot Password?",
-                        color = primaryColor
-                    )
+                    Text(text = "Forgot Password?", color = primaryColor)
                 }
             }
         }

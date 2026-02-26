@@ -10,6 +10,7 @@ interface AuthRepository {
     val authState: StateFlow<AuthState>
 
     suspend fun signInWithGoogle(): AuthResult
+    suspend fun signInWithGoogleIdToken(idToken: String): AuthResult
     suspend fun signInWithEmailAndPassword(email: String, password: String): AuthResult
     suspend fun signUpWithEmailAndPassword(email: String, password: String, displayName: String): AuthResult
     suspend fun signOut(): Boolean

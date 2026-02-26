@@ -14,6 +14,16 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Firestore schema (nested subcollections):
+ *
+ * users/
+ *   {uid}/
+ *     sessions/
+ *       {sessionId}/          ← session metadata document
+ *         sensor_data/
+ *           {timestamp}/      ← one document per sensor reading
+ */
 @Singleton
 class CloudSessionRepositoryImplementation @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -25,68 +35,76 @@ class CloudSessionRepositoryImplementation @Inject constructor(
 
     companion object {
         private const val TAG = "CloudSessionRepository"
+        private const val USERS_COLLECTION = "users"
         private const val SESSIONS_COLLECTION = "sessions"
         private const val SENSOR_DATA_COLLECTION = "sensor_data"
     }
 
+    // ------------------------------------------------------------------
+    // Path helpers
+    // ------------------------------------------------------------------
+
+    /** users/{uid}/sessions */
+    private fun sessionsRef(uid: String) =
+        firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SESSIONS_COLLECTION)
+
+    /** users/{uid}/sessions/{sessionId} */
+    private fun sessionDocRef(uid: String, sessionId: Long) =
+        sessionsRef(uid).document(sessionId.toString())
+
+    /** users/{uid}/sessions/{sessionId}/sensor_data */
+    private fun sensorDataRef(uid: String, sessionId: Long) =
+        sessionDocRef(uid, sessionId).collection(SENSOR_DATA_COLLECTION)
+
+    // ------------------------------------------------------------------
+    // Upload
+    // ------------------------------------------------------------------
+
     override suspend fun uploadSession(session: Session, sensorData: List<SensorData>): Boolean {
         return try {
-            val currentUser = authRepository.getCurrentUser() ?: return false
+            val uid = authRepository.getCurrentUser()?.uid ?: return false
 
             _uploadProgress.value = 0f
 
-            // Prepare session document with user ID
+            // 1. Write the session metadata document
             val sessionDoc = mapOf(
-                "id" to session.id,
-                "userId" to currentUser.uid,
-                "startTime" to session.startTime,
-                "endTime" to session.endTime,
-                "receivedAt" to session.receivedAt,
+                "id"             to session.id,
+                "startTime"      to session.startTime,
+                "endTime"        to session.endTime,
+                "receivedAt"     to session.receivedAt,
                 "dataPointCount" to session.dataPointCount,
-                "uploadedAt" to System.currentTimeMillis()
+                "uploadedAt"     to System.currentTimeMillis()
             )
+            sessionDocRef(uid, session.id).set(sessionDoc).await()
 
-            // Upload session document
-            val sessionRef = firestore.collection(SESSIONS_COLLECTION)
-                .document("${currentUser.uid}_${session.id}")
+            _uploadProgress.value = 0.2f
 
-            sessionRef.set(sessionDoc).await()
-
-            _uploadProgress.value = 0.3f
-
-            // Upload sensor data in batches
-            val batchSize = 500 // Firestore batch limit
-            val batches = sensorData.chunked(batchSize)
-
-            for ((index, batch) in batches.withIndex()) {
+            // 2. Write sensor_data subcollection in batches of 500 (Firestore limit)
+            val batches = sensorData.chunked(500)
+            batches.forEachIndexed { index, batch ->
                 val batchWrite = firestore.batch()
 
                 batch.forEach { data ->
-                    val sensorDataDoc = mapOf(
-                        "sessionId" to session.id,
-                        "userId" to currentUser.uid,
+                    val doc = mapOf(
                         "timestamp" to data.timestamp,
                         "heartRate" to data.heartRate,
-                        "gyroX" to data.gyroX,
-                        "gyroY" to data.gyroY,
-                        "gyroZ" to data.gyroZ
+                        "gyroX"     to data.gyroX,
+                        "gyroY"     to data.gyroY,
+                        "gyroZ"     to data.gyroZ
                     )
-
-                    val docRef = firestore.collection(SENSOR_DATA_COLLECTION)
-                        .document("${currentUser.uid}_${session.id}_${data.timestamp}")
-
-                    batchWrite.set(docRef, sensorDataDoc)
+                    val docRef = sensorDataRef(uid, session.id)
+                        .document(data.timestamp.toString())
+                    batchWrite.set(docRef, doc)
                 }
 
                 batchWrite.commit().await()
-
-                val progress = 0.3f + (0.7f * (index + 1) / batches.size)
-                _uploadProgress.value = progress
+                _uploadProgress.value = 0.2f + 0.8f * (index + 1) / batches.size
             }
 
             _uploadProgress.value = 1f
-
-            Log.d(TAG, "Successfully uploaded session ${session.id} with ${sensorData.size} data points")
+            Log.d(TAG, "Uploaded session ${session.id} — ${sensorData.size} readings")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to upload session", e)
@@ -94,147 +112,131 @@ class CloudSessionRepositoryImplementation @Inject constructor(
         }
     }
 
+    // ------------------------------------------------------------------
+    // Download — all sessions (metadata only, no sensor data)
+    // ------------------------------------------------------------------
+
     override suspend fun downloadAllSessions(): List<Session> {
         return try {
-            val currentUser = authRepository.getCurrentUser() ?: return emptyList()
+            val uid = authRepository.getCurrentUser()?.uid ?: return emptyList()
 
             _downloadProgress.value = 0f
-
-            val querySnapshot = firestore.collection(SESSIONS_COLLECTION)
-                .whereEqualTo("userId", currentUser.uid)
+            val snapshot = sessionsRef(uid)
                 .orderBy("startTime", Query.Direction.DESCENDING)
                 .get()
                 .await()
-
             _downloadProgress.value = 1f
 
-            querySnapshot.documents.mapNotNull { doc ->
-                try {
-                    Session(
-                        id = doc.getLong("id") ?: 0L,
-                        startTime = doc.getLong("startTime") ?: 0L,
-                        endTime = doc.getLong("endTime") ?: 0L,
-                        receivedAt = doc.getLong("receivedAt") ?: System.currentTimeMillis(),
-                        dataPointCount = doc.getLong("dataPointCount")?.toInt() ?: 0
-                    )
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to parse session document", e)
-                    null
-                }
-            }
+            snapshot.documents.mapNotNull { it.toSession() }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to download sessions", e)
             emptyList()
         }
     }
 
+    // ------------------------------------------------------------------
+    // Download — single session metadata
+    // ------------------------------------------------------------------
+
     override suspend fun downloadSession(sessionId: String): Session? {
         return try {
-            val currentUser = authRepository.getCurrentUser() ?: return null
-
-            val doc = firestore.collection(SESSIONS_COLLECTION)
-                .document("${currentUser.uid}_$sessionId")
+            val uid = authRepository.getCurrentUser()?.uid ?: return null
+            sessionDocRef(uid, sessionId.toLong())
                 .get()
                 .await()
-
-            if (doc.exists()) {
-                Session(
-                    id = doc.getLong("id") ?: 0L,
-                    startTime = doc.getLong("startTime") ?: 0L,
-                    endTime = doc.getLong("endTime") ?: 0L,
-                    receivedAt = doc.getLong("receivedAt") ?: System.currentTimeMillis(),
-                    dataPointCount = doc.getLong("dataPointCount")?.toInt() ?: 0
-                )
-            } else {
-                null
-            }
+                .toSession()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to download session", e)
+            Log.e(TAG, "Failed to download session $sessionId", e)
             null
         }
     }
 
+    // ------------------------------------------------------------------
+    // Download — sensor_data subcollection of a session
+    // ------------------------------------------------------------------
+
     override suspend fun downloadSensorData(sessionId: String): List<SensorData> {
         return try {
-            val currentUser = authRepository.getCurrentUser() ?: return emptyList()
+            val uid = authRepository.getCurrentUser()?.uid ?: return emptyList()
+            val sessionIdLong = sessionId.toLong()
 
             _downloadProgress.value = 0f
-
-            val querySnapshot = firestore.collection(SENSOR_DATA_COLLECTION)
-                .whereEqualTo("userId", currentUser.uid)
-                .whereEqualTo("sessionId", sessionId.toLongOrNull())
+            val snapshot = sensorDataRef(uid, sessionIdLong)
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
                 .await()
-
             _downloadProgress.value = 1f
 
-            querySnapshot.documents.mapNotNull { doc ->
+            snapshot.documents.mapNotNull { doc ->
                 try {
                     SensorData(
-                        sessionId = doc.getLong("sessionId") ?: 0L,
-                        timestamp = doc.getLong("timestamp") ?: 0L,
-                        heartRate = doc.getDouble("heartRate"),
-                        gyroX = doc.getDouble("gyroX")?.toFloat(),
-                        gyroY = doc.getDouble("gyroY")?.toFloat(),
-                        gyroZ = doc.getDouble("gyroZ")?.toFloat()
+                        sessionId  = sessionIdLong,
+                        timestamp  = doc.getLong("timestamp") ?: 0L,
+                        heartRate  = doc.getDouble("heartRate"),
+                        gyroX      = doc.getDouble("gyroX")?.toFloat(),
+                        gyroY      = doc.getDouble("gyroY")?.toFloat(),
+                        gyroZ      = doc.getDouble("gyroZ")?.toFloat()
                     )
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to parse sensor data document", e)
+                    Log.e(TAG, "Failed to parse sensor reading", e)
                     null
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to download sensor data", e)
+            Log.e(TAG, "Failed to download sensor data for session $sessionId", e)
             emptyList()
         }
     }
 
+    // ------------------------------------------------------------------
+    // Delete — removes session doc + entire sensor_data subcollection
+    // ------------------------------------------------------------------
+
     override suspend fun deleteCloudSession(sessionId: String): Boolean {
         return try {
-            val currentUser = authRepository.getCurrentUser() ?: return false
+            val uid = authRepository.getCurrentUser()?.uid ?: return false
+            val sessionIdLong = sessionId.toLong()
 
-            val batch = firestore.batch()
-
-            // Delete session document
-            val sessionRef = firestore.collection(SESSIONS_COLLECTION)
-                .document("${currentUser.uid}_$sessionId")
-            batch.delete(sessionRef)
-
-            // Delete associated sensor data
-            val sensorDataQuery = firestore.collection(SENSOR_DATA_COLLECTION)
-                .whereEqualTo("userId", currentUser.uid)
-                .whereEqualTo("sessionId", sessionId.toLongOrNull())
-                .get()
-                .await()
-
-            sensorDataQuery.documents.forEach { doc ->
-                batch.delete(doc.reference)
+            // Delete all sensor_data documents first
+            val sensorDocs = sensorDataRef(uid, sessionIdLong).get().await()
+            val batchSize = 500
+            sensorDocs.documents.chunked(batchSize).forEach { chunk ->
+                val batch = firestore.batch()
+                chunk.forEach { batch.delete(it.reference) }
+                batch.commit().await()
             }
 
-            batch.commit().await()
+            // Delete the session document itself
+            sessionDocRef(uid, sessionIdLong).delete().await()
 
-            Log.d(TAG, "Successfully deleted cloud session $sessionId")
+            Log.d(TAG, "Deleted cloud session $sessionId")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete cloud session", e)
+            Log.e(TAG, "Failed to delete cloud session $sessionId", e)
             false
         }
     }
 
-    override suspend fun syncSessionsWithCloud(): Boolean {
-        return try {
-            // This would involve comparing local and cloud sessions
-            // and syncing the differences. For now, we'll just return success
-            // This would be implemented based on your specific sync strategy
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to sync sessions with cloud", e)
-            false
-        }
-    }
+    override suspend fun syncSessionsWithCloud(): Boolean = true
 
     override fun getUploadProgress(): Flow<Float> = _uploadProgress.asStateFlow()
-
     override fun getDownloadProgress(): Flow<Float> = _downloadProgress.asStateFlow()
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.toSession(): Session? =
+        try {
+            Session(
+                id             = getLong("id") ?: 0L,
+                startTime      = getLong("startTime") ?: 0L,
+                endTime        = getLong("endTime") ?: 0L,
+                receivedAt     = getLong("receivedAt") ?: System.currentTimeMillis(),
+                dataPointCount = getLong("dataPointCount")?.toInt() ?: 0
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse session document $id", e)
+            null
+        }
 }

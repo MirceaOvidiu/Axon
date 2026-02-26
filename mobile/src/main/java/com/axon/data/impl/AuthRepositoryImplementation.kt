@@ -5,10 +5,9 @@ import com.axon.domain.model.AuthResult
 import com.axon.domain.model.AuthState
 import com.axon.domain.model.User
 import com.axon.domain.repository.AuthRepository
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -61,27 +60,18 @@ class AuthRepositoryImplementation @Inject constructor(
                        else AuthState.NOT_AUTHENTICATED
     )
 
-    override suspend fun signInWithGoogle(): AuthResult {
+    override suspend fun signInWithGoogle(): AuthResult =
+        AuthResult(user = null, isSuccess = false, errorMessage = "Use signInWithGoogleIdToken")
+
+    override suspend fun signInWithGoogleIdToken(idToken: String): AuthResult {
         return try {
-            // Configure Google Sign In
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(context.getString(com.axon.R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-
-            val googleSignInClient = GoogleSignIn.getClient(context, gso)
-
-            AuthResult(
-                user = null,
-                isSuccess = false,
-                errorMessage = "Google Sign In must be handled in the UI layer"
-            )
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val result = firebaseAuth.signInWithCredential(credential).await()
+            val user = result.user?.toUser()
+            if (user != null) updateUserInFirestore(user)
+            AuthResult(user = user, isSuccess = user != null)
         } catch (e: Exception) {
-            AuthResult(
-                user = null,
-                isSuccess = false,
-                errorMessage = e.message
-            )
+            AuthResult(user = null, isSuccess = false, errorMessage = e.message)
         }
     }
 
