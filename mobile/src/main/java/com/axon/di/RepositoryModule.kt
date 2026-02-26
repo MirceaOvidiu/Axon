@@ -1,7 +1,11 @@
 package com.axon.di
 
+import com.axon.data.impl.AuthRepositoryImplementation
+import com.axon.data.impl.CloudSessionRepositoryImplementation
 import com.axon.data.impl.SessionRepositoryImplementation
 import com.axon.data.impl.WearableRepositoryImpl
+import com.axon.domain.repository.AuthRepository
+import com.axon.domain.repository.CloudSessionRepository
 import com.axon.domain.repository.SessionRepository
 import com.axon.domain.repository.WearableRepository
 import dagger.Binds
@@ -20,4 +24,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWearableRepository(wearableRepositoryImpl: WearableRepositoryImpl): WearableRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(authRepositoryImplementation: AuthRepositoryImplementation): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCloudSessionRepository(cloudSessionRepositoryImplementation: CloudSessionRepositoryImplementation): CloudSessionRepository
 }

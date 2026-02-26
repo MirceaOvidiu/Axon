@@ -12,6 +12,8 @@ interface SessionRepository {
 
     suspend fun insertSession(session: Session): Long
 
+    suspend fun insertSensorData(sensorDataList: List<SensorData>)
+
     suspend fun deleteSession(sessionId: Long)
 
     suspend fun getSensorDataBySession(sessionId: Long): List<SensorData>

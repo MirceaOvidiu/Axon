@@ -170,7 +170,7 @@ fun MainScreen(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
                 text =
@@ -184,13 +184,12 @@ fun MainScreen(
 
             Text(
                 text =
-                    "X:%.2f Y:%.2f Z:%.2f".format(
+                    "X:%+.2f Y:%+.2f Z:%+.2f".format(
                         uiState.gyroscopeData[0],
                         uiState.gyroscopeData[1],
                         uiState.gyroscopeData[2],
                     ),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption2,
+                style = MaterialTheme.typography.caption3,
             )
         }
 

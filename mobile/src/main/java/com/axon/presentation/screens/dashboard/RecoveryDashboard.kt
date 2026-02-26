@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,7 +43,10 @@ val progressTrackColor = Color(0xFF1E3A5F) // Dark blue for progress tracks
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun RecoveryDashboardScreen() {
+fun RecoveryDashboardScreen(
+    authViewModel: com.axon.presentation.screens.auth.AuthViewModel? = null,
+    onNavigateToAuth: () -> Unit = {}
+) {
     AxonTheme(darkTheme = true) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -55,7 +59,7 @@ fun RecoveryDashboardScreen() {
                         .padding(innerPadding)
                         .verticalScroll(rememberScrollState()),
             ) {
-                TopHeader()
+                TopHeader(authViewModel, onNavigateToAuth)
                 MainProgressCard()
                 KeyMetricsSection()
                 Spacer(modifier = Modifier.height(24.dp))
@@ -65,7 +69,12 @@ fun RecoveryDashboardScreen() {
 }
 
 @Composable
-fun TopHeader() {
+fun TopHeader(
+    authViewModel: com.axon.presentation.screens.auth.AuthViewModel? = null,
+    onNavigateToAuth: () -> Unit = {}
+) {
+    val currentUser = authViewModel?.currentUser?.collectAsState()?.value
+
     Column(modifier = Modifier.padding(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -76,25 +85,30 @@ fun TopHeader() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
             ){
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Good Morning Varu'!",
+                    text = "Good Morning ${currentUser?.displayName ?: "User"}!",
                     color = Color.White,
-                    fontSize = 28.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Hai boss ca se poate.",
+                    text = currentUser?.email ?: "Welcome to Axon",
                     color = textMutedDark,
                     fontSize = 14.sp,
                 )
             }
             IconButton(
-                onClick = { /* TODO: Profile action */ }) {
+                modifier = Modifier.size(50.dp),
+                onClick = {
+                    authViewModel?.signOut()
+                    onNavigateToAuth()
+                }) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_person_24),
                     contentDescription = "Profile",
                     tint = Color.White,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(50.dp),
                 )
             }
         }
@@ -211,5 +225,5 @@ fun MetricCard(
 @Preview(showBackground = true, backgroundColor = 0xFF102219)
 @Composable
 private fun RecoveryDashboardScreenPreview() {
-    RecoveryDashboardScreen()
+    RecoveryDashboardScreen(null) {}
 }

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Axon</string>
     <string name="recovery_dashboard_title">Recovery Dashboard</string>
+    <string name="default_web_client_id">your_web_client_id_here</string>
 </resources>

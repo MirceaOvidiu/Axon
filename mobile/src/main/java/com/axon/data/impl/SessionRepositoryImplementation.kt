@@ -51,4 +51,9 @@ class SessionRepositoryImplementation
                 dataPointCount = dataPointCount,
             )
         }
+
+        override suspend fun insertSensorData(sensorDataList: List<SensorData>) {
+            val entities = sensorDataList.map { it.toEntity() }
+            sessionDao.insertAllSensorData(entities)
+        }
     }
