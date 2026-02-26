@@ -51,7 +51,6 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.axon.R
 import com.axon.domain.model.AuthState
-import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
 import com.axon.presentation.screens.dashboard.primaryColor
 import com.axon.presentation.theme.AxonTheme

@@ -1,6 +1,5 @@
 package com.axon.data.impl
 
-import android.content.Context
 import com.axon.domain.model.AuthResult
 import com.axon.domain.model.AuthState
 import com.axon.domain.model.User
@@ -10,7 +9,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,7 +24,6 @@ import androidx.core.net.toUri
 
 @Singleton
 class AuthRepositoryImplementation @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : AuthRepository {
@@ -199,7 +196,7 @@ class AuthRepositoryImplementation @Inject constructor(
                 .document(user.uid)
                 .set(user)
                 .await()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Log error but don't fail the operation
         }
     }
