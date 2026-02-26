@@ -39,6 +39,7 @@ android {
 dependencies {
     implementation(libs.androidx.health.services.client)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.guava)
     implementation(libs.play.services.wearable)
     implementation(platform(libs.androidx.compose.bom))

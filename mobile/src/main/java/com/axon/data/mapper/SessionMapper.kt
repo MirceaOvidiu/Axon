@@ -43,9 +43,9 @@ fun SessionTransferData.toSensorDataEntities(sessionId: Long): List<SensorDataEn
             id = 0,
             sessionId = sessionId,
             timestamp = reading.timestamp,
-            heartRate = reading.heartRate ?: 0.0,
-            gyroX = reading.gyroX?.toDouble() ?: 0.0,
-            gyroY = reading.gyroY?.toDouble() ?: 0.0,
-            gyroZ = reading.gyroZ?.toDouble() ?: 0.0,
+            heartRate = reading.heartRate,
+            gyroX = reading.gyroX?.toDouble(),
+            gyroY = reading.gyroY?.toDouble(),
+            gyroZ = reading.gyroZ?.toDouble(),
         )
     }
