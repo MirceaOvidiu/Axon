@@ -1,6 +1,5 @@
 package com.axon.domain.usecase
 
-import com.axon.domain.model.SensorData
 import com.axon.domain.model.Session
 import com.axon.domain.repository.AuthRepository
 import com.axon.domain.repository.CloudSessionRepository
@@ -54,7 +53,7 @@ class CloudSyncUseCase @Inject constructor(
                         } else {
                             failedCount++
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         failedCount++
                     }
                 }
@@ -66,12 +65,12 @@ class CloudSyncUseCase @Inject constructor(
         }
     }
 
-    suspend fun downloadSessionFromCloud(sessionId: String): CloudSyncResult {
+    suspend fun downloadSessionFromCloud(firestoreId: String): CloudSyncResult {
         return try {
-            val session = cloudSessionRepository.downloadSession(sessionId)
+            val session = cloudSessionRepository.downloadSession(firestoreId)
                 ?: return CloudSyncResult.Error("Session not found in cloud")
 
-            val sensorData = cloudSessionRepository.downloadSensorData(sessionId)
+            val sensorData = cloudSessionRepository.downloadSensorData(firestoreId)
 
             // Save to local database
             val localSessionId = sessionRepository.insertSession(session)
@@ -94,7 +93,7 @@ class CloudSyncUseCase @Inject constructor(
         try {
             val sessions = cloudSessionRepository.downloadAllSessions()
             emit(sessions)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emit(emptyList())
         }
     }

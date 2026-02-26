@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -80,6 +81,8 @@ class CloudSyncViewModel @Inject constructor(
                         _uiState.value = _uiState.value.copy(
                             successMessage = "Session uploaded successfully"
                         )
+                        // Clear message after 3 seconds
+                        clearMessagesAfterDelay()
                     } else {
                         _uiState.value = _uiState.value.copy(
                             errorMessage = "Failed to upload session"
@@ -100,13 +103,13 @@ class CloudSyncViewModel @Inject constructor(
         }
     }
 
-    fun downloadSession(sessionId: String) {
+    fun downloadSession(firestoreId: String) {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isDownloading = true)
 
-                val session = cloudSessionRepository.downloadSession(sessionId)
-                val sensorData = cloudSessionRepository.downloadSensorData(sessionId)
+                val session = cloudSessionRepository.downloadSession(firestoreId)
+                val sensorData = cloudSessionRepository.downloadSensorData(firestoreId)
 
                 if (session != null) {
                     // Save to local database
@@ -116,6 +119,8 @@ class CloudSyncViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         successMessage = "Session downloaded successfully"
                     )
+                    // Clear message after 3 seconds
+                    clearMessagesAfterDelay()
                 } else {
                     _uiState.value = _uiState.value.copy(
                         errorMessage = "Failed to download session"
@@ -160,6 +165,8 @@ class CloudSyncViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     successMessage = "Sync complete: $uploaded uploaded, $failed failed"
                 )
+                // Clear message after 3 seconds
+                clearMessagesAfterDelay()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = "Sync failed: ${e.message}"
@@ -170,15 +177,17 @@ class CloudSyncViewModel @Inject constructor(
         }
     }
 
-    fun deleteCloudSession(sessionId: String) {
+    fun deleteCloudSession(firestoreId: String) {
         viewModelScope.launch {
             try {
-                val success = cloudSessionRepository.deleteCloudSession(sessionId)
+                val success = cloudSessionRepository.deleteCloudSession(firestoreId)
                 if (success) {
                     loadCloudSessions()
                     _uiState.value = _uiState.value.copy(
                         successMessage = "Session deleted from cloud"
                     )
+                    // Clear message after 3 seconds
+                    clearMessagesAfterDelay()
                 } else {
                     _uiState.value = _uiState.value.copy(
                         errorMessage = "Failed to delete session from cloud"
@@ -197,6 +206,39 @@ class CloudSyncViewModel @Inject constructor(
             errorMessage = null,
             successMessage = null
         )
+    }
+
+    fun cleanupOldSessions() {
+        viewModelScope.launch {
+            try {
+                val success = cloudSessionRepository.cleanupOldNumericSessions()
+                if (success) {
+                    // Refresh cloud sessions to reflect changes
+                    loadCloudSessions()
+                    _uiState.value = _uiState.value.copy(
+                        successMessage = "Old sessions cleaned up successfully"
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Failed to cleanup old sessions"
+                    )
+                }
+                clearMessagesAfterDelay()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "Cleanup failed: ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun clearMessagesAfterDelay() {
+        viewModelScope.launch {
+            delay(3000) // Wait 3 seconds
+            _uiState.value = _uiState.value.copy(
+                successMessage = null
+            )
+        }
     }
 }
 

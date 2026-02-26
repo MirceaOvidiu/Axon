@@ -87,7 +87,7 @@ fun TopHeader(
             ){
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Good Morning ${currentUser?.displayName ?: "User"}!",
+                    text = "Hello ${currentUser?.displayName ?: "User"}!",
                     color = Color.White,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,

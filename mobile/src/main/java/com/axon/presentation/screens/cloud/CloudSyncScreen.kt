@@ -148,19 +148,19 @@ fun CloudSyncScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Progress indicators
-                if (uiState.isUploading || uploadProgress > 0f) {
+                if (uiState.isUploading) {
                     ProgressCard(
                         title = "Uploading...",
                         progress = uploadProgress,
-                        isIndeterminate = uiState.isUploading && uploadProgress == 0f
+                        isIndeterminate = uploadProgress == 0f
                     )
                 }
 
-                if (uiState.isDownloading || downloadProgress > 0f) {
+                if (uiState.isDownloading) {
                     ProgressCard(
                         title = "Downloading...",
                         progress = downloadProgress,
-                        isIndeterminate = uiState.isDownloading && downloadProgress == 0f
+                        isIndeterminate = downloadProgress == 0f
                     )
                 }
 
@@ -181,7 +181,7 @@ fun CloudSyncScreen(
                         onClick = { viewModel.uploadAllSessions() },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
-                        enabled = !uiState.isSyncing && !uiState.isUploading
+                        enabled = !uiState.isSyncing && !uiState.isUploading && !uiState.isDownloading
                     ) {
                         Text("Upload All")
                     }
@@ -228,7 +228,8 @@ fun CloudSyncScreen(
                         sessions = uiState.cloudSessions,
                         onDownloadSession = viewModel::downloadSession,
                         onDeleteSession = viewModel::deleteCloudSession,
-                        isLoading = uiState.isLoadingCloud
+                        isLoading = uiState.isLoadingCloud,
+                        isDownloading = uiState.isDownloading
                     )
                 }
 
@@ -303,12 +304,6 @@ private fun ProgressCard(
                     modifier = Modifier.fillMaxWidth(),
                     color = primaryColor,
                 )
-                Text(
-                    text = "${(progress * 100).toInt()}%",
-                    color = textMutedDark,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
         }
     }
@@ -326,7 +321,7 @@ private fun LocalSessionsList(
         items(sessions) { session ->
             SessionCard(
                 session = session,
-                actionText = "Upload",
+                actionText = if (isUploading) "Uploading..." else "Upload",
                 onAction = { onUploadSession(session.id) },
                 actionEnabled = !isUploading,
                 showDelete = false,
@@ -347,7 +342,8 @@ private fun CloudSessionsList(
     sessions: List<Session>,
     onDownloadSession: (String) -> Unit,
     onDeleteSession: (String) -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isDownloading: Boolean
 ) {
     if (isLoading) {
         Box(
@@ -363,11 +359,11 @@ private fun CloudSessionsList(
             items(sessions) { session ->
                 SessionCard(
                     session = session,
-                    actionText = "Download",
-                    onAction = { onDownloadSession(session.id.toString()) },
-                    actionEnabled = true,
+                    actionText = if (isDownloading) "Downloading..." else "Download",
+                    onAction = { onDownloadSession(session.firestoreId) },
+                    actionEnabled = !isDownloading,
                     showDelete = true,
-                    onDelete = { onDeleteSession(session.id.toString()) }
+                    onDelete = { onDeleteSession(session.firestoreId) }
                 )
             }
 

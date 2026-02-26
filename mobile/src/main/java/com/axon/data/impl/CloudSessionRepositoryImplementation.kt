@@ -50,13 +50,13 @@ class CloudSessionRepositoryImplementation @Inject constructor(
             .document(uid)
             .collection(SESSIONS_COLLECTION)
 
-    /** users/{uid}/sessions/{sessionId} */
-    private fun sessionDocRef(uid: String, sessionId: Long) =
-        sessionsRef(uid).document(sessionId.toString())
+    /** users/{uid}/sessions/{firestoreId} */
+    private fun sessionDocRef(uid: String, firestoreId: String) =
+        sessionsRef(uid).document(firestoreId)
 
-    /** users/{uid}/sessions/{sessionId}/sensor_data */
-    private fun sensorDataRef(uid: String, sessionId: Long) =
-        sessionDocRef(uid, sessionId).collection(SENSOR_DATA_COLLECTION)
+    /** users/{uid}/sessions/{firestoreId}/sensor_data */
+    private fun sensorDataRef(uid: String, firestoreId: String) =
+        sessionDocRef(uid, firestoreId).collection(SENSOR_DATA_COLLECTION)
 
     // ------------------------------------------------------------------
     // Upload
@@ -71,13 +71,15 @@ class CloudSessionRepositoryImplementation @Inject constructor(
             // 1. Write the session metadata document
             val sessionDoc = mapOf(
                 "id"             to session.id,
+                "firestoreId"    to session.firestoreId,
+                "userId"         to session.userId,
                 "startTime"      to session.startTime,
                 "endTime"        to session.endTime,
                 "receivedAt"     to session.receivedAt,
                 "dataPointCount" to session.dataPointCount,
                 "uploadedAt"     to System.currentTimeMillis()
             )
-            sessionDocRef(uid, session.id).set(sessionDoc).await()
+            sessionDocRef(uid, session.firestoreId).set(sessionDoc).await()
 
             _uploadProgress.value = 0.2f
 
@@ -94,7 +96,7 @@ class CloudSessionRepositoryImplementation @Inject constructor(
                         "gyroY"     to data.gyroY,
                         "gyroZ"     to data.gyroZ
                     )
-                    val docRef = sensorDataRef(uid, session.id)
+                    val docRef = sensorDataRef(uid, session.firestoreId)
                         .document(data.timestamp.toString())
                     batchWrite.set(docRef, doc)
                 }
@@ -138,15 +140,15 @@ class CloudSessionRepositoryImplementation @Inject constructor(
     // Download — single session metadata
     // ------------------------------------------------------------------
 
-    override suspend fun downloadSession(sessionId: String): Session? {
+    override suspend fun downloadSession(firestoreId: String): Session? {
         return try {
             val uid = authRepository.getCurrentUser()?.uid ?: return null
-            sessionDocRef(uid, sessionId.toLong())
+            sessionDocRef(uid, firestoreId)
                 .get()
                 .await()
                 .toSession()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to download session $sessionId", e)
+            Log.e(TAG, "Failed to download session $firestoreId", e)
             null
         }
     }
@@ -155,13 +157,12 @@ class CloudSessionRepositoryImplementation @Inject constructor(
     // Download — sensor_data subcollection of a session
     // ------------------------------------------------------------------
 
-    override suspend fun downloadSensorData(sessionId: String): List<SensorData> {
+    override suspend fun downloadSensorData(firestoreId: String): List<SensorData> {
         return try {
             val uid = authRepository.getCurrentUser()?.uid ?: return emptyList()
-            val sessionIdLong = sessionId.toLong()
 
             _downloadProgress.value = 0f
-            val snapshot = sensorDataRef(uid, sessionIdLong)
+            val snapshot = sensorDataRef(uid, firestoreId)
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
                 .await()
@@ -170,7 +171,7 @@ class CloudSessionRepositoryImplementation @Inject constructor(
             snapshot.documents.mapNotNull { doc ->
                 try {
                     SensorData(
-                        sessionId  = sessionIdLong,
+                        sessionId  = 0, // Will be updated when inserted locally
                         timestamp  = doc.getLong("timestamp") ?: 0L,
                         heartRate  = doc.getDouble("heartRate"),
                         gyroX      = doc.getDouble("gyroX")?.toFloat(),
@@ -183,7 +184,7 @@ class CloudSessionRepositoryImplementation @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to download sensor data for session $sessionId", e)
+            Log.e(TAG, "Failed to download sensor data for session $firestoreId", e)
             emptyList()
         }
     }
@@ -192,13 +193,12 @@ class CloudSessionRepositoryImplementation @Inject constructor(
     // Delete — removes session doc + entire sensor_data subcollection
     // ------------------------------------------------------------------
 
-    override suspend fun deleteCloudSession(sessionId: String): Boolean {
+    override suspend fun deleteCloudSession(firestoreId: String): Boolean {
         return try {
             val uid = authRepository.getCurrentUser()?.uid ?: return false
-            val sessionIdLong = sessionId.toLong()
 
             // Delete all sensor_data documents first
-            val sensorDocs = sensorDataRef(uid, sessionIdLong).get().await()
+            val sensorDocs = sensorDataRef(uid, firestoreId).get().await()
             val batchSize = 500
             sensorDocs.documents.chunked(batchSize).forEach { chunk ->
                 val batch = firestore.batch()
@@ -207,12 +207,12 @@ class CloudSessionRepositoryImplementation @Inject constructor(
             }
 
             // Delete the session document itself
-            sessionDocRef(uid, sessionIdLong).delete().await()
+            sessionDocRef(uid, firestoreId).delete().await()
 
-            Log.d(TAG, "Deleted cloud session $sessionId")
+            Log.d(TAG, "Deleted cloud session $firestoreId")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete cloud session $sessionId", e)
+            Log.e(TAG, "Failed to delete cloud session $firestoreId", e)
             false
         }
     }
@@ -223,6 +223,53 @@ class CloudSessionRepositoryImplementation @Inject constructor(
     override fun getDownloadProgress(): Flow<Float> = _downloadProgress.asStateFlow()
 
     // ------------------------------------------------------------------
+    // Admin/Cleanup methods
+    // ------------------------------------------------------------------
+
+    /**
+     * Clean up old sessions that were created with numeric IDs instead of UUIDs.
+     * This can be used to remove sessions like "3", "4", etc. that shouldn't exist.
+     */
+    override suspend fun cleanupOldNumericSessions(): Boolean {
+        return try {
+            val uid = authRepository.getCurrentUser()?.uid ?: return false
+
+            // Get all sessions
+            val snapshot = sessionsRef(uid).get().await()
+            var deletedCount = 0
+
+            for (document in snapshot.documents) {
+                val documentId = document.id
+                // Check if the document ID is purely numeric (old format)
+                if (documentId.matches(Regex("^\\d+$"))) {
+                    Log.d(TAG, "Found old numeric session ID: $documentId - deleting...")
+
+                    // Delete sensor data first
+                    val sensorDocs = sensorDataRef(uid, documentId).get().await()
+                    val batchSize = 500
+                    sensorDocs.documents.chunked(batchSize).forEach { chunk ->
+                        val batch = firestore.batch()
+                        chunk.forEach { batch.delete(it.reference) }
+                        batch.commit().await()
+                    }
+
+                    // Delete the session document
+                    document.reference.delete().await()
+                    deletedCount++
+
+                    Log.d(TAG, "Deleted old numeric session: $documentId")
+                }
+            }
+
+            Log.d(TAG, "Cleanup complete: deleted $deletedCount old numeric sessions")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to cleanup old numeric sessions", e)
+            false
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
 
@@ -230,6 +277,8 @@ class CloudSessionRepositoryImplementation @Inject constructor(
         try {
             Session(
                 id             = getLong("id") ?: 0L,
+                firestoreId    = getString("firestoreId") ?: id, // Use document ID as fallback
+                userId         = getString("userId") ?: "",
                 startTime      = getLong("startTime") ?: 0L,
                 endTime        = getLong("endTime") ?: 0L,
                 receivedAt     = getLong("receivedAt") ?: System.currentTimeMillis(),
