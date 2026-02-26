@@ -13,15 +13,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -89,123 +85,99 @@ fun MainScreen(
     uiState: MainUiState,
     onIntent: (MainIntent) -> Unit,
 ) {
-    Column(
+    androidx.compose.foundation.layout.Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colors.background)
-                .verticalScroll(rememberScrollState())
-                .padding(8.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+                .background(MaterialTheme.colors.background),
+        contentAlignment = Alignment.Center,
     ) {
-        // Recording Control Button
-        RecordingButton(
-            isRecording = uiState.isRecording,
-            isSyncing = uiState.isSyncing,
-            onStartRecording = { onIntent(MainIntent.StartRecording) },
-            onStopRecording = { onIntent(MainIntent.StopRecording) },
-        )
-
-        // Recording Status
-        if (uiState.isRecording) {
-            Text(
-                text = formatDuration(uiState.recordingDuration),
-                textAlign = TextAlign.Center,
-                color = Color.Red,
-                style = MaterialTheme.typography.title2,
-            )
-            Text(
-                text = "${uiState.dataPointsRecorded} readings",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption2,
-            )
-        }
-
-        // Sync Status
-        if (uiState.isSyncing) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                )
-                Text(
-                    text = "Syncing...",
-                    style = MaterialTheme.typography.caption2,
-                )
-            }
-        }
-
-        uiState.lastSyncResult?.let { result ->
-            Text(
-                text = result,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption2,
-                color =
-                    if (result.contains(
-                            "failed",
-                            ignoreCase = true,
-                        )
-                    ) {
-                        Color.Red
-                    } else {
-                        Color.Green
-                    },
-            )
-        }
-
-        uiState.errorMessage?.let { error ->
-            Text(
-                text = error,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption2,
-                color = Color.Red,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        // BPM at top of circle
+        Column(
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text =
                     if (uiState.heartRateAvailability != null && uiState.heartRateBpm > 0) {
-                        "%.0f BPM".format(uiState.heartRateBpm)
+                        "%.0f".format(uiState.heartRateBpm)
                     } else {
-                        "00 BPM"
+                        "--"
                     },
+                style = MaterialTheme.typography.display1,
                 textAlign = TextAlign.Center,
             )
-
             Text(
-                text =
-                    "X:%+.2f Y:%+.2f Z:%+.2f".format(
-                        uiState.gyroscopeData[0],
-                        uiState.gyroscopeData[1],
-                        uiState.gyroscopeData[2],
-                    ),
-                style = MaterialTheme.typography.caption3,
+                text = "BPM",
+                style = MaterialTheme.typography.caption1,
+                textAlign = TextAlign.Center,
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // Gyro data at bottom of circle - using monospace and fixed width formatting
+        Column(
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = String.format(java.util.Locale.US, "X:%+6.2f", uiState.gyroscopeData[0]),
+                style = MaterialTheme.typography.caption2,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            )
+            Text(
+                text = String.format(java.util.Locale.US, "Y:%+6.2f", uiState.gyroscopeData[1]),
+                style = MaterialTheme.typography.caption2,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            )
+            Text(
+                text = String.format(java.util.Locale.US, "Z:%+6.2f", uiState.gyroscopeData[2]),
+                style = MaterialTheme.typography.caption2,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+            )
+        }
 
-        // Manual sync button
-        if (!uiState.isRecording && !uiState.isSyncing) {
-            Button(
-                onClick = { onIntent(MainIntent.SyncAllSessions) },
-                modifier = Modifier.fillMaxWidth(0.8f),
-                colors = ButtonDefaults.secondaryButtonColors(),
-            ) {
-                Text("Sync All")
+        // Central recording button
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            CircularRecordingButton(
+                isRecording = uiState.isRecording,
+                isSyncing = uiState.isSyncing,
+                onStartRecording = { onIntent(MainIntent.StartRecording) },
+                onStopRecording = { onIntent(MainIntent.StopRecording) },
+            )
+
+            // Show recording duration when recording
+            if (uiState.isRecording) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = formatDuration(uiState.recordingDuration),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.caption1,
+                )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            // Show sync status
+            if (uiState.isSyncing) {
+                Spacer(modifier = Modifier.height(4.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                )
+            }
+
+            // Show errors
+            uiState.errorMessage?.let { error ->
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = error,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.caption3,
+                    color = Color.Red,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
         }
     }
 }
@@ -244,7 +216,7 @@ fun StopIcon(
 }
 
 @Composable
-fun RecordingButton(
+fun CircularRecordingButton(
     isRecording: Boolean,
     isSyncing: Boolean,
     onStartRecording: () -> Unit,
@@ -255,33 +227,24 @@ fun RecordingButton(
             if (isRecording) onStopRecording() else onStartRecording()
         },
         enabled = !isSyncing,
-        modifier = Modifier.fillMaxWidth(0.8f),
+        modifier = Modifier.size(80.dp),
         colors =
             if (isRecording) {
                 ButtonDefaults.buttonColors(backgroundColor = Color(0xFFE53E3E)) // Red for stop
             } else {
-                ButtonDefaults.buttonColors(backgroundColor = Color(0xFF38A169)) // Green for play
+                ButtonDefaults.buttonColors(backgroundColor = Color(0xFF38A169)) // Green for start
             },
+        shape = androidx.compose.foundation.shape.CircleShape,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (isRecording) {
-                StopIcon(
-                    modifier = Modifier.size(10.dp),
-                    color = Color.White,
-                )
-            } else {
-                PlayIcon(
-                    modifier = Modifier.size(20.dp),
-                    color = Color.White,
-                )
-            }
-            Text(
-                text = if (isRecording) "Stop Recording" else "Start Recording",
+        if (isRecording) {
+            StopIcon(
+                modifier = Modifier.size(24.dp),
                 color = Color.White,
-                textAlign = TextAlign.Center,
+            )
+        } else {
+            PlayIcon(
+                modifier = Modifier.size(24.dp),
+                color = Color.White,
             )
         }
     }
