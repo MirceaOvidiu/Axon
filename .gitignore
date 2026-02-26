@@ -15,3 +15,12 @@
 local.properties
 
 /.tex
+
+# Signing — do NOT commit
+keystore.properties
+*.keystore
+mobile/release.keystore
+
+# Encoded secrets - never commit
+*-b64.txt
+release.keystore

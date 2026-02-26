@@ -1,3 +1,6 @@
 /build
 /mobilebuild
 /wear/build
+t
+# Firebase config
+google-services.json

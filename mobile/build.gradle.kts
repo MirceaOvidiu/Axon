@@ -1,9 +1,17 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
     id("com.google.gms.google-services")
+}
+
+// Read signing config from env vars (CI) or local keystore.properties (dev)
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) load(keystorePropsFile.inputStream())
 }
 
 android {
@@ -22,13 +30,31 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(
+                System.getenv("KEYSTORE_PATH")
+                    ?: (keystoreProps["storeFile"] as String? ?: "")
+            )
+            storePassword = System.getenv("STORE_PASSWORD")
+                ?: (keystoreProps["storePassword"] as String? ?: "")
+            keyAlias = System.getenv("KEY_ALIAS")
+                ?: (keystoreProps["keyAlias"] as String? ?: "")
+            keyPassword = System.getenv("KEY_PASSWORD")
+                ?: (keystoreProps["keyPassword"] as String? ?: "")
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
