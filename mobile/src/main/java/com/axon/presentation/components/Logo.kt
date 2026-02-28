@@ -2,8 +2,6 @@ package com.axon.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,13 +9,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.presentation.theme.ThinFont
 
+@Preview
 @Composable
-fun MinimalisticAxonLogo(
+fun AxonLogo(
     modifier: Modifier = Modifier,
     textColor: Color = Color.White,
     size: LogoSize = LogoSize.LARGE
@@ -30,25 +29,12 @@ fun MinimalisticAxonLogo(
         Text(
             text = "AXON",
             fontFamily = ThinFont,
-            fontWeight = FontWeight.Thin, // Use Thin weight for minimalistic look
+            fontWeight = FontWeight.Thin,
             fontSize = size.fontSize,
             color = textColor,
             textAlign = TextAlign.Center,
             letterSpacing = size.letterSpacing
         )
-
-        if (size == LogoSize.LARGE) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Recovery Analytics",
-                fontFamily = ThinFont,
-                fontWeight = FontWeight.ExtraLight, // Even lighter for subtitle
-                fontSize = size.subTextSize,
-                color = textColor.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                letterSpacing = 2.sp
-            )
-        }
     }
 }
 

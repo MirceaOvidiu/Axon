@@ -55,8 +55,8 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.axon.R
 import com.axon.domain.model.AuthState
+import com.axon.presentation.components.AxonLogo
 import com.axon.presentation.components.LogoSize
-import com.axon.presentation.components.MinimalisticAxonLogo
 import com.axon.presentation.screens.dashboard.primaryColor
 import com.axon.presentation.theme.AxonTheme
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -144,7 +144,6 @@ fun AuthScreen(
             ) {
                 Spacer(modifier = Modifier.weight(0.1f))
 
-                // Minimalistic Logo Section
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(bottom = 48.dp)
@@ -152,7 +151,7 @@ fun AuthScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    MinimalisticAxonLogo(
+                    AxonLogo(
                         textColor = Color.White,
                         size = LogoSize.LARGE
                     )
@@ -170,7 +169,7 @@ fun AuthScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(32.dp),
+                            .padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -374,7 +373,7 @@ private fun AuthForm(
 
         // Divider with "OR" label
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             HorizontalDivider(

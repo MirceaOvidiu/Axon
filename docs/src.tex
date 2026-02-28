@@ -1,0 +1,210 @@
+\documentclass[12pt, a4paper]{report}
+
+% --- Preamble: Packages for Romanian support and formatting ---
+\usepackage[utf8]{inputenc}
+\usepackage[romanian]{babel} % Sets titles like "Contents" to "Cuprins"
+\usepackage[margin=1in]{geometry}
+\usepackage{titlesec}
+
+% Optional: Set line spacing to 1.5 (common for academic papers)
+\usepackage{setspace}
+\onehalfspacing
+
+\begin{document}
+
+% --- Automatically generates the Table of Contents ---
+\tableofcontents
+\newpage
+
+% --- Chapter 1 ---
+\chapter{Introducere}
+\section{Contextul general și motivația cercetării}
+\hspace{0.75cm}Evoluția omului a constat în dezvoltarea gândirii critice, structurate, logice cu scopul de a depăși 
+impedimentele puse în calea existentei acestuia. 
+Cu cât sfera cunoasterii s-a largit, indivizii au fost nevoiți să se specializeze în anumite domenii,
+cum ar fi agricultura, astronomia, arhitectura sau medicina. 
+Pentru a putea continua evolutia in aceste domenii, apare necesitatea individului cu o 
+gândire pretata pentru probleme complexe interdisciplinare: anume, inginerul. 
+Urmărind avansul cunoștințelor din domeniul ingineriei, această 
+meserie s-a ramificat în diferite directii, precum: mecanica, energetica, chimica, electronică, telecomunicații, 
+automatică, etc.
+
+\hspace{0.75cm}Automatica reprezintă o știință interdisciplinară care are o viziune holistică asupra sistemelor complexe. 
+Scopul acesteia este de a optimiza procesele si evolutia acestor sisteme, minimizand contribuția si eroarea umana.
+Unul dintre cele mai complexe sisteme cunoscute de umanitate este reprezentat de insusi corpul omenesc. 
+
+\hspace{0.75cm}O perturbatie in urma careia acest sistem rareori revine la un regim de funcționare normal  
+este accidentul vascular cerebral. La nivel global, AVC-ul reprezintă o problemă majoră de sănătate publică, 
+fiind a doua cauză de mortalitate și a treia cauză principală de dizabilitate pe termen lung, conform studiului 
+Global Burden of Disease \cite{gbd2021}. Efectele unui AVC sunt profunde și adesea ireversibile, 
+privând rapid porțiuni ale creierului de oxigen și nutrienți,
+ceea ce duce la necroză tisulară și la pierderea unor funcții motorii, cognitive sau senzoriale esențiale.
+
+\hspace{0.75cm}În România, situatia este critică, incidența și gravitatea acestui fenomen atingând cote semnificativ
+mai mari  în comparație cu media europeană. Statisticile plasează România în topul țărilor europene în ceea ce 
+privește mortalitatea cauzată de afecțiuni cerebrovasculare, rata de deces prin AVC fiind de aproximativ două ori
+mai mare decât media Uniunii Europene și reprezentând peste 20\% din totalul deceselor la nivel național 
+\cite{romania_stats}. Anual, aproximativ 60 de mii de pacienți români suferă un accident vascular cerebral ischemic sau hemoragic. 
+
+\hspace{0.75cm}Un alt capitol la care Romania se afla in coada clasamentelor europene este reprezentat de accesul facil la 
+infrastructura medicală și tratamente de recuperare. Majoritatea centrelor de recuperare neurologică bine echipate 
+și a specialiștilor cu experiență în neuroreabilitare sunt concentrate în marile centre universitare \cite{tiu_2023}.
+
+\section{Obiectivele proiectului}
+
+\hspace{0.75cm} Luând în considerare problemele menționate anterior, în cadrul acestei lucrări este abordată 
+următoarea soluție: realizarea unui sistem telemedical integrat, compus dintr-o aplicație de tip wearable (pentru smartwatch) 
+și o aplicație mobilă, care să monitorizeze, să cuantifice și să personalizeze de la distanță procesul de recuperare motorie 
+a pacienților, procesul de reabilitare fiind asistat de algoritmi de procesare de semnal și modele de tip machine learning.
+
+\hspace{0.75cm}Obiectivele specifice ale proiectului sunt: 
+\begin{itemize}
+    \item Dezvoltarea unei aplicații pentru platforma Wear OS, capabilă să monitorizeze în 
+     timp real mișcările și semnalele fiziologice ale pacienților.
+    \item Integrarea algoritmilor specifici ingineriei biomedicale în vederea evaluării și cuantificării 
+     numerice obiective a calității mișcărilor efectuate de pacient. 
+    \item Integrarea algoritmilor de machine learning astfel încât sistemul să poată calcula un progres realist 
+     și să ajusteze automat obiectivele de recuperare ale pacientului pe diferite orizonturi de timp
+     (zilnic, săptămânal, lunar).
+    \item Oferirea unui mod de vizualizare intuitiv care să permită o metodă ușoară de urmărire a 
+     progresului și de comparare a sesiunilor de recuperare, atât pentru pacient, cât și pentru personalul medical. 
+    \item Asigurarea securității și confidențialității datelor medicale colectate  
+\end{itemize}
+
+% --- Chapter 2 ---
+\chapter{Patologia si recuperarea post-AVC}
+
+\section{Patologia accidentului vascular cerebral}
+\hspace{0.75cm}Accidentul vascular cerebral reprezintă un deficit neurologic focal cu instalare bruscă, cauzat de o perturbare severă 
+a circulației sanguine la nivelul encefalului. Din punct de vedere fiziopatologic, AVC-ul se clasifică în două categorii 
+majore: ischemic (care reprezintă aproximativ 85\% din cazuri, cauzat de ocluzia unui vas de sânge prin tromboză sau embolism)
+și hemoragic (cauzat de ruptura vasculară) \cite{stroke_patho_2020}. Indiferent de etiologie, privarea țesutului cerebral de
+oxigen și glucoză declanșează o cascadă ischemică distructivă. În centrul leziunii neuronii 
+necrozeaza în câteva minute. Supraviețuirea pacientului este adesea acompaniată
+de deficite motorii severe pe partea opusă emisferei cerebrale afectate (hemipareză sau hemiplegie), tulburări de echilibru 
+și spasticitate musculară, care compromit drastic independența funcțională a acestuia.
+
+\section{Mecanismul biologic al recuperării: neuroplasticitatea}
+
+\hspace{0.75cm}Spre deosebire de dogma medicală clasică, care susținea că sistemul nervos central adult este o structură rigidă, cercetările
+moderne au demonstrat că recuperarea funcțiilor motorii pierdute este posibilă datorită neuroplasticității. Aceasta este definită ca 
+abilitatea intrinsecă a creierului de a se remodela structural și funcțional ca răspuns la experiență, învățare sau leziuni \cite{kleim_jones_2008}.
+După un AVC, creierul inițiază un proces de reorganizare corticală: neuronii din zonele adiacente leziunii, sau chiar din emisfera 
+contralaterală (sănătoasă), pot prelua parțial funcțiile rețelelor neuronale distruse. Acest fenomen implică formarea de noi sinapse 
+(sinaptogeneză), modificarea eficienței sinapselor existente și ramificarea dendritică.
+
+\hspace{0.75cm}La nivel național și internațional, contribuții fundamentale la aprofundarea acestor mecanisme
+celulare și a capacității creierului de autoreparare 
+au fost aduse de academicianul și neurochirurgul român Prof. Dr. Leon Dănăilă \cite{danaila_2023}.
+Desi structura cerebrală dispune de acest instrumentar celular uimitor de regenerare, neuroplasticitatea rămâne un proces
+„dependent de experiență”; ea nu se produce spontan
+la un nivel suficient de înalt pentru a reda independența funcțională, ci trebuie stimulată activ
+și susținut prin reînvățare motorie \cite{cramer_2011}.
+
+\section{Importanța mișcărilor repetitive}
+\hspace{0.75cm}Pentru a transforma potențialul neuroplasticității în recuperare funcțională reală, reabilitarea motorie trebuie să respecte 
+anumite principii biomecanice și neurologice stricte. Unul dintre cele mai importante este principiul repetiției. Studiile de neurofiziologie 
+arată că sunt necesare mii de repetări ale unei mișcări specifice pentru a consolida noile căi neuronale și a transforma o mișcare stângace, 
+conștientă, într-un automatism motor \cite{lang_2009}. Terapia indusă prin constrângere (CIMT - Constraint-Induced Movement Therapy) 
+și antrenamentul specific sarcinii (task-specific training) demonstrează că intensitatea și frecvența ridicată a exercițiilor dictează 
+gradul de recuperare. În lipsa unor mișcări repetitive, ghidate corect, pacientul riscă să dezvolte mișcări compensatorii vicioase 
+(folosind doar membrele sănătoase), 
+fenomen cunoscut sub numele de „neutilizare învățată” (learned non-use), care plafonează recuperarea pe termen lung \cite{taub_2014}.
+
+% --- Chapter 3 ---
+\chapter{Stadiul actual al tehnologiei de recuperare}
+\section{Dispozitive wearable si sensori in monitorizarea sanatatii}
+\section{Sisteme existente de reabilitare - analiza state of the art}
+\section{Analiza comparativa a solutiilor vs. solutia propusa}
+
+\chapter{Fundamentele teoretice ale analizei miscarii}
+\section{Senzori inertiali (IMU): accelerometru si giroscop}
+\section{Metrici de evaluare a calitatii miscarii}
+\section{Analiza fluiditatii: Algoritmul Spectral Arc Length - SPARC}
+\section{Analiza stabilitatii: Log Dimensionless Jerk - Acceleration - LDLJ - A}
+\section{Recunoasterea tiparelor si corectitudinii: Dynamic Time Warping - DTW}
+\section{Variabilitatea ritmului cardiac (HRV) si activitate electrodermala (EDA)}
+
+% --- Chapter 5 (Solution) ---
+\chapter{Soluția propusă}
+\section{Prezentarea generală a ecosistemului}
+\section{Componenta Hardware: Specificații Google Pixel Watch 3 și limitări}
+\section{Componenta Software: Arhitectura aplicației Wear OS și Mobile}
+\section{Arhitectura Cloud și fluxul de date - GCP}
+\section{Interpretarea rezultatelor}
+\section{Securitatea și confidențialitatea datelor medicale}
+
+
+% --- Chapter 6 ---
+\chapter{Implementarea solutiei}
+\section{Tehnologii și medii de dezvoltare utilizate}
+\section{Achiziția și procesarea datelor senzorilor}
+\section{Implementarea algoritmilor de evaluare}
+\section{Calculul scorului de fluiditate - SPARC}
+\section{Mecanismul de feedback haptic și vizual în timp real}
+\section{Dezvoltarea Dashboard-ului pentru monitorizarea progresului}
+
+% --- Chapter 7 ---
+\chapter{Testare, Rezultate, Studiu de caz}
+\section{Metodologia de testare și scenariile utilizate}
+\section{Organizarea seturilor de date experimentale}
+\section{Analiza performanței tehnice}
+\section{Interpretarea rezultatelor }
+\section{Studiu de caz: Evoluția unui set de exerciții}
+
+% --- Chapter 8 ---
+\chapter{Concluzii}
+\section{Limitări ale sistemului actual}
+\section{Direcții de dezvoltare ulterioară}
+
+% --- Bibliography ---
+\begin{thebibliography}{99}
+
+\bibitem{gbd2021} 
+V. L. Feigin et al., \textit{Global, regional, and national burden of stroke and its risk factors, 1990–2021: a systematic analysis for the Global Burden of Disease Study 2021}, The Lancet Neurology, 2024.
+
+\bibitem{romania_stats} 
+A. M. Ionescu et al., \textit{A statistical analysis of acute ischemic stroke before and during the COVID-19 pandemic}, Romanian Journal of Medical Practice, 2022.
+
+\bibitem{eu_stroke_2022} 
+S. Wassertheil-Smoller et al., \textit{Burden of Stroke in Europe: An Analysis of the Global Burden of Disease Study Findings From 2010 to 2019}, American Heart Association Journals, 2022.
+
+\bibitem{tiu_2023} 
+C. Tiu et al., \textit{Quality of acute stroke care in Romania: Achievements and gaps between 2017 and 2022}, Frontiers in Neurology, Vol. 13, 2023.
+
+\bibitem{ms_protocol_2025} 
+Ministerul Sănătății din România, \textit{Referat de aprobare: Protocol național de practică medicală privind tratamentul intervențional al pacienților cu accident vascular cerebral acut}, București, Februarie 2025.
+
+\bibitem{stroke_patho_2020}
+A. D. Mendelson and S. Prabhakaran, \textit{Diagnosis and Management of Transient Ischemic Attack and Acute Ischemic Stroke: A Review}, JAMA, vol. 325, no. 11, pp. 1088-1098, 2021.
+
+\bibitem{penumbra_2018}
+J. Astrup, B. K. Siesjö, and L. Symon, \textit{Thresholds in cerebral ischemia - the ischemic penumbra}, Stroke, vol. 12, no. 6, pp. 723-725, 1981. (Notă: Lucrarea clasică care a definit penumbra).
+
+\bibitem{kleim_jones_2008}
+J. A. Kleim and T. A. Jones, \textit{Principles of experience-dependent neural plasticity: implications for rehabilitation after brain damage}, Journal of Speech, Language, and Hearing Research, vol. 51, no. 1, pp. S225-S239, 2008.
+
+\bibitem{cramer_2011}
+S. C. Cramer et al., \textit{Harnessing neuroplasticity for clinical applications}, Brain, vol. 134, no. 6, pp. 1591-1609, 2011.
+
+\bibitem{lang_2009}
+C. E. Lang, J. R. MacDonald, D. S. Reisman, L. Boyd, T. Jacobson Kimberley, S. M. Schindler-Ivens, A. W. Hornby, J. C. Ross, and P. L. Scheets, \textit{Observation of amounts of movement practice provided during stroke rehabilitation}, Archives of Physical Medicine and Rehabilitation, vol. 90, no. 10, pp. 1692-1698, 2009.
+
+\bibitem{taub_2014}
+E. Taub, G. Uswatte, and V. W. Mark, \textit{The functional significance of cortical reorganization and the parallel development of CI therapy}, Frontiers in Human Neuroscience, vol. 8, p. 396, 2014.
+
+\bibitem{kwakkel_2017}
+G. Kwakkel et al., \textit{Standardized measurement of sensorimotor recovery in stroke trials: Consensus-based core recommendations from the Stroke Recovery and Rehabilitation Roundtable}, International Journal of Stroke, vol. 12, no. 5, pp. 451-461, 2017.
+
+\bibitem{peters_2021}
+D. Ding, J. Cooper, C. M. Pasquina, and L. Finkelstein, \textit{Sensor technology for stroke rehabilitation: towards tele-rehabilitation and home-based therapy}, IEEE Reviews in Biomedical Engineering, vol. 14, pp. 163-176, 2021.
+
+\bibitem{danaila_2023}
+L. Dănăilă, \textit{Neuroplasticitatea}, Editura Academiei Române, București, 2023.
+
+\bibitem{pais_danaila_2013}
+V. Păiș, L. Dănăilă, and E. Păiș, \textit{Cordocytes-stem cells cooperation in the human brain with emphasis on pivotal role of cordocytes in perivascular areas of broken and thrombosed vessels}, Ultrastructural Pathology, vol. 37, no. 6, pp. 425-432, 2013.
+
+\end{thebibliography}
+
+\end{document}
