@@ -591,8 +591,7 @@ fun RawDataTableCard(sensorData: List<SensorData>) {
                 TableHeaderCell(text = "Gyro Z", modifier = Modifier.weight(1f))
             }
 
-            // Table rows - show last 50 readings to avoid performance issues
-            val displayData = sensorData.takeLast(50)
+            val displayData = sensorData.takeLast(15)
             displayData.forEachIndexed { index, data ->
                 val bgColor = if (index % 2 == 0) Color(0xFF1E1E1E) else Color(0xFF252525)
                 Row(
@@ -627,9 +626,9 @@ fun RawDataTableCard(sensorData: List<SensorData>) {
                 }
             }
 
-            if (sensorData.size > 50) {
+            if (sensorData.size > 15) {
                 Text(
-                    text = "Showing last 50 of ${sensorData.size} readings",
+                    text = "Showing last 15 of ${sensorData.size} readings",
                     color = textMutedDark,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 8.dp),
@@ -646,7 +645,7 @@ private fun TableHeaderCell(
 ) {
     Text(
         text = text,
-        color = primaryColor,
+        color = Color.White,
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         modifier = modifier,

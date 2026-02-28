@@ -1,7 +1,7 @@
 package com.axon.domain.usecase
 
-import com.axon.data.source.health.HealthServicesDataSource
-import com.axon.data.source.sensors.GyroDataSource
+import com.axon.data.health.HealthServicesDataSource
+import com.axon.data.sensors.GyroDataSource
 import com.axon.domain.entity.RecordingSession
 import com.axon.domain.repository.recording.RecordingRepository
 import kotlinx.coroutines.CoroutineScope

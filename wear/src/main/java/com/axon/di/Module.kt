@@ -1,10 +1,10 @@
 package com.axon.di
 
 import android.content.Context
-import com.axon.data.source.health.HealthServicesDataSource
-import com.axon.data.source.health.HealthServicesDataSourceAdapter
-import com.axon.data.source.manager.HealthServicesManager
-import com.axon.data.source.sensors.GyroDataSource
+import com.axon.data.health.HealthServicesDataSource
+import com.axon.data.health.HealthServicesDataSourceAdapter
+import com.axon.data.manager.HealthServicesManager
+import com.axon.data.sensors.GyroDataSource
 import com.axon.domain.repository.recording.RecordingRepository
 import com.axon.domain.repository.sync.SyncRepository
 import com.axon.domain.repository.sync.SyncRepositoryImplementation

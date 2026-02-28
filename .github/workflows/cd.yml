@@ -1,0 +1,138 @@
+name: CD — Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Version name (e.g., 1.0.0)'
+        required: true
+        type: string
+      versionCode:
+        description: 'Version code (integer)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. JDK setup ───────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # ── 3. Validate Gradle wrapper ────────────────────────────────────────
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
+        continue-on-error: true  # Don't fail build on network issues
+        timeout-minutes: 2
+
+      # ── 4. Make gradlew executable ─────────────────────────────────────────
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ── 5. Inject Firebase config ──────────────────────────────────────────
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "❌ GOOGLE_SERVICES_JSON secret is not set!"
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > mobile/google-services.json
+          echo "✅ google-services.json created successfully"
+
+      # ── 6. Setup signing keystore ──────────────────────────────────────────
+      - name: Decode keystore
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+        run: |
+          if [ -z "$KEYSTORE_FILE" ]; then
+            echo "❌ KEYSTORE_FILE secret is not set!"
+            exit 1
+          fi
+          echo "$KEYSTORE_FILE" | base64 --decode > release.keystore
+          echo "✅ Keystore decoded successfully"
+
+      # ── 7. Build release APKs ──────────────────────────────────────────────
+      - name: Build release APK (mobile)
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew :mobile:assembleRelease --stacktrace
+          echo "✅ Mobile release APK built successfully"
+
+      - name: Build release APK (wear)
+        run: |
+          ./gradlew :wear:assembleRelease --stacktrace
+          echo "✅ Wear release APK built successfully"
+
+      # ── 8. Build release AAB (for Play Store) ──────────────────────────────
+      - name: Build release AAB (mobile)
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew :mobile:bundleRelease --stacktrace
+          echo "✅ Mobile AAB built successfully"
+
+      # ── 9. Clean up sensitive files ────────────────────────────────────────
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f release.keystore
+
+      # ── 10. Upload release artifacts ────────────────────────────────────────
+      - name: Upload mobile APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: axon-mobile-release-${{ github.run_number }}
+          path: mobile/build/outputs/apk/release/*.apk
+          retention-days: 90
+
+      - name: Upload mobile AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: axon-mobile-bundle-${{ github.run_number }}
+          path: mobile/build/outputs/bundle/release/*.aab
+          retention-days: 90
+
+      - name: Upload wear APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: axon-wear-release-${{ github.run_number }}
+          path: wear/build/outputs/apk/release/*.apk
+          retention-days: 90
+
+      # ── 11. Create GitHub Release ───────────────────────────────────────────
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mobile/build/outputs/apk/release/*.apk
+            mobile/build/outputs/bundle/release/*.aab
+            wear/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

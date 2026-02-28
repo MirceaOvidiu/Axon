@@ -1,15 +1,26 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
+    id("com.google.gms.google-services")
 }
+
+// Read signing config from env vars (CI) or local keystore.properties (dev)
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) load(keystorePropsFile.inputStream())
+}
+
+// Check if signing config is available
+val hasSigningConfig = System.getenv("KEYSTORE_PATH")?.isNotEmpty() == true ||
+                       (keystoreProps["storeFile"] as String?)?.isNotEmpty() == true
 
 android {
     namespace = "com.axon"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.axon"
@@ -21,13 +32,34 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (hasSigningConfig) {
+            create("release") {
+                storeFile = file(
+                    System.getenv("KEYSTORE_PATH")
+                        ?: keystoreProps["storeFile"] as String
+                )
+                storePassword = System.getenv("STORE_PASSWORD")
+                    ?: keystoreProps["storePassword"] as String
+                keyAlias = System.getenv("KEY_ALIAS")
+                    ?: keystoreProps["keyAlias"] as String
+                keyPassword = System.getenv("KEY_PASSWORD")
+                    ?: keystoreProps["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
@@ -79,6 +111,21 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Firebase and GCP - using explicit versions from version catalog
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.play.services.auth)
+
+    // Google Sign-In via Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // Coroutines support for Firebase
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

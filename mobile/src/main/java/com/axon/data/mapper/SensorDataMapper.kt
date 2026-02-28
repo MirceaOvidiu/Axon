@@ -9,9 +9,9 @@ fun SensorDataEntity.toDomain(): SensorData =
         sessionId = this.sessionId,
         timestamp = this.timestamp,
         heartRate = this.heartRate,
-        gyroX = this.gyroX.toFloat(),
-        gyroY = this.gyroY.toFloat(),
-        gyroZ = this.gyroZ.toFloat(),
+        gyroX = this.gyroX?.toFloat(),
+        gyroY = this.gyroY?.toFloat(),
+        gyroZ = this.gyroZ?.toFloat(),
     )
 
 fun SensorData.toEntity(): SensorDataEntity =
@@ -19,8 +19,8 @@ fun SensorData.toEntity(): SensorDataEntity =
         id = this.id,
         sessionId = this.sessionId,
         timestamp = this.timestamp,
-        heartRate = this.heartRate ?: 0.0,
-        gyroX = this.gyroX?.toDouble() ?: 0.0,
-        gyroY = this.gyroY?.toDouble() ?: 0.0,
-        gyroZ = this.gyroZ?.toDouble() ?: 0.0,
+        heartRate = this.heartRate,
+        gyroX = this.gyroX?.toDouble(),
+        gyroY = this.gyroY?.toDouble(),
+        gyroZ = this.gyroZ?.toDouble(),
     )
