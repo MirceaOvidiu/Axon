@@ -14,6 +14,10 @@ val keystoreProps = Properties().apply {
     if (keystorePropsFile.exists()) load(keystorePropsFile.inputStream())
 }
 
+// Check if signing config is available
+val hasSigningConfig = System.getenv("KEYSTORE_PATH")?.isNotEmpty() == true ||
+                       (keystoreProps["storeFile"] as String?)?.isNotEmpty() == true
+
 android {
     namespace = "com.axon"
     compileSdk = 36
@@ -28,19 +32,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-
     signingConfigs {
-        create("release") {
-            storeFile = file(
-                System.getenv("KEYSTORE_PATH")
-                    ?: (keystoreProps["storeFile"] as String? ?: "")
-            )
-            storePassword = System.getenv("STORE_PASSWORD")
-                ?: (keystoreProps["storePassword"] as String? ?: "")
-            keyAlias = System.getenv("KEY_ALIAS")
-                ?: (keystoreProps["keyAlias"] as String? ?: "")
-            keyPassword = System.getenv("KEY_PASSWORD")
-                ?: (keystoreProps["keyPassword"] as String? ?: "")
+        if (hasSigningConfig) {
+            create("release") {
+                storeFile = file(
+                    System.getenv("KEYSTORE_PATH")
+                        ?: keystoreProps["storeFile"] as String
+                )
+                storePassword = System.getenv("STORE_PASSWORD")
+                    ?: keystoreProps["storePassword"] as String
+                keyAlias = System.getenv("KEY_ALIAS")
+                    ?: keystoreProps["keyAlias"] as String
+                keyPassword = System.getenv("KEY_PASSWORD")
+                    ?: keystoreProps["keyPassword"] as String
+            }
         }
     }
 
@@ -52,7 +57,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (hasSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
