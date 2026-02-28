@@ -6,11 +6,67 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{titlesec}
 
+\usepackage[utf8]{inputenc} % Pentru caracterele cu diacritice din limba română
+\usepackage{graphicx}       % Pentru inserarea imaginilor (siglelor)
+\usepackage{geometry}       % Pentru setarea marginilor paginii
+\geometry{a4paper, margin=2.5cm}
+
 % Optional: Set line spacing to 1.5 (common for academic papers)
 \usepackage{setspace}
 \onehalfspacing
 
 \begin{document}
+
+\begin{titlepage}
+    \centering
+
+    % --- Zona pentru Sigle ---
+    % Înlocuiește 'logo_upb.png' și 'logo_acs.png' cu numele reale ale fișierelor tale.
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushleft}
+            \includegraphics[height=3cm]{logos/upb.png} 
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushright}
+            \includegraphics[height=3cm]{logos/acs.png}
+        \end{flushright}
+    \end{minipage}\\[1cm]
+
+    % --- Instituția ---
+    {\Large \textbf{Universitatea POLITEHNICA București}}\\[0.5cm]
+    {\Large \textbf{Facultatea Automatică şi Calculatoare}}\\[0.5cm]
+    {\Large \textbf{Departamentul Automatică şi Informatică Industrială}}\\[3cm]
+
+    % --- Tipul Lucrării ---
+    {\LARGE \textbf{LUCRARE DE LICENŢĂ}}\\[2cm]
+
+    % --- Titlul Lucrării ---
+    {\huge \textbf{Sistem inteligent pentru evaluarea și monitorizarea 
+                    mișcării în reabilitarea post-AVC}}\\[4cm]
+
+    % --- Persoanele Implicate ---
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushleft} \large
+            \emph{Coordonator:}\\
+            \textbf{Prof. dr. ing. Mihai Caramihai}
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth} 
+        \begin{flushright} \large
+            \emph{Absolvent:}\\
+            \textbf{Dodi Mircea-Ovidiu}
+        \end{flushright}
+    \end{minipage}\\[1.5cm]
+
+    \vfill
+
+    % --- Anul ---
+    {\Large \textbf{2026}}
+
+\end{titlepage}
 
 % --- Automatically generates the Table of Contents ---
 \tableofcontents

@@ -6,10 +6,11 @@ import androidx.wear.compose.material.MaterialTheme
 @Composable
 fun AxonTheme(content: @Composable () -> Unit) {
     /**
-     * Empty theme to customize for your app.
+     * Axon Wear OS theme with Montserrat font.
      * See: https://developer.android.com/jetpack/compose/designsystems/custom
      */
     MaterialTheme(
+        typography = MontserratTypography,
         content = content,
     )
 }
