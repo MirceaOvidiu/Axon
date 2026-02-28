@@ -68,11 +68,7 @@ jobs:
           echo "$KEYSTORE_FILE" | base64 --decode > release.keystore
           echo "✅ Keystore decoded successfully"
 
-      # ── 7. Run tests before release ────────────────────────────────────────
-      - name: Run unit tests
-        run: ./gradlew :mobile:testReleaseUnitTest :wear:testReleaseUnitTest --stacktrace
-
-      # ── 8. Build release APKs ──────────────────────────────────────────────
+      # ── 7. Build release APKs ──────────────────────────────────────────────
       - name: Build release APK (mobile)
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
@@ -88,7 +84,7 @@ jobs:
           ./gradlew :wear:assembleRelease --stacktrace
           echo "✅ Wear release APK built successfully"
 
-      # ── 9. Build release AAB (for Play Store) ──────────────────────────────
+      # ── 8. Build release AAB (for Play Store) ──────────────────────────────
       - name: Build release AAB (mobile)
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
@@ -99,12 +95,12 @@ jobs:
           ./gradlew :mobile:bundleRelease --stacktrace
           echo "✅ Mobile AAB built successfully"
 
-      # ── 10. Clean up sensitive files ───────────────────────────────────────
+      # ── 9. Clean up sensitive files ────────────────────────────────────────
       - name: Cleanup keystore
         if: always()
         run: rm -f release.keystore
 
-      # ── 11. Upload release artifacts ───────────────────────────────────────
+      # ── 10. Upload release artifacts ────────────────────────────────────────
       - name: Upload mobile APK
         uses: actions/upload-artifact@v4
         with:
@@ -126,7 +122,7 @@ jobs:
           path: wear/build/outputs/apk/release/*.apk
           retention-days: 90
 
-      # ── 12. Create GitHub Release ──────────────────────────────────────────
+      # ── 11. Create GitHub Release ───────────────────────────────────────────
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1

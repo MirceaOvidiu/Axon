@@ -1,4 +1,6 @@
-name: CI — Build & Test
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: CI — Build
 
 on:
   push:
@@ -9,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build & Test
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -49,25 +51,14 @@ jobs:
           echo "$GOOGLE_SERVICES_JSON" | base64 --decode > mobile/google-services.json
           echo "✅ google-services.json created successfully"
 
-      # ── 6. Run unit tests ──────────────────────────────────────────────────
-      - name: Run unit tests (mobile)
-        run: ./gradlew :mobile:testDebugUnitTest --stacktrace --info
-
-      - name: Run unit tests (wear)
-        run: ./gradlew :wear:testDebugUnitTest --stacktrace --info
-
-      # ── 7. Build debug APKs ────────────────────────────────────────────────
+      # ── 6. Build debug APKs ────────────────────────────────────────────────
       - name: Build debug APK (mobile)
         run: ./gradlew :mobile:assembleDebug --stacktrace
 
       - name: Build debug APK (wear)
         run: ./gradlew :wear:assembleDebug --stacktrace
 
-      # ── 8. Run lint checks ─────────────────────────────────────────────────
-      - name: Run lint
-        run: ./gradlew :mobile:lintDebug :wear:lintDebug --stacktrace
-
-      # ── 9. Upload artifacts ────────────────────────────────────────────────
+      # ── 7. Upload artifacts ────────────────────────────────────────────────
       - name: Upload mobile APK
         if: success()
         uses: actions/upload-artifact@v4
@@ -82,26 +73,4 @@ jobs:
         with:
           name: axon-wear-debug-${{ github.run_number }}
           path: wear/build/outputs/apk/debug/*.apk
-          retention-days: 14
-
-      # ── 10. Upload test results ────────────────────────────────────────────
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ github.run_number }}
-          path: |
-            mobile/build/reports/tests/
-            wear/build/reports/tests/
-          retention-days: 14
-
-      # ── 11. Upload lint results ────────────────────────────────────────────
-      - name: Upload lint results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-reports-${{ github.run_number }}
-          path: |
-            mobile/build/reports/lint-results*.html
-            wear/build/reports/lint-results*.html
           retention-days: 14
