@@ -537,18 +537,6 @@ fun LegendItem(
     }
 }
 
-private fun formatDuration(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
-    return if (hours > 0) {
-        "%dh %02dm %02ds".format(hours, minutes, seconds)
-    } else if (minutes > 0) {
-        "%dm %02ds".format(minutes, seconds)
-    } else {
-        "%ds".format(seconds)
-    }
-}
 
 @Composable
 fun RawDataTableCard(sensorData: List<SensorData>) {
@@ -664,4 +652,17 @@ private fun TableCell(
         fontSize = 10.sp,
         modifier = modifier,
     )
+}
+
+private fun formatDuration(millis: Long): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(millis)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+    return if (hours > 0) {
+        "%dh %02dm %02ds".format(hours, minutes, seconds)
+    } else if (minutes > 0) {
+        "%dm %02ds".format(minutes, seconds)
+    } else {
+        "%ds".format(seconds)
+    }
 }

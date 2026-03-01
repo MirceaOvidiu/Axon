@@ -8,72 +8,70 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Typography
 import com.axon.R
 
-// Montserrat Font Family
-val Montserrat = FontFamily(
-    Font(R.font.montserrat_regular, FontWeight.Normal),
-    Font(R.font.montserrat_medium, FontWeight.Medium),
-    Font(R.font.montserrat_bold, FontWeight.Bold)
+// Selima Font Family
+val Selima = FontFamily(
+    Font(R.font.selima, FontWeight.Normal)
 )
 
-// Wear OS Typography with Montserrat
-val MontserratTypography = Typography(
+// Wear OS Typography with Selima
+val SelimaTypography = Typography(
     display1 = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Bold,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 40.sp
     ),
     display2 = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Bold,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 34.sp
     ),
     display3 = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Bold,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 30.sp
     ),
     title1 = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Medium,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 24.sp
     ),
     title2 = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Medium,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 20.sp
     ),
     title3 = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Medium,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 16.sp
     ),
     body1 = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = Selima,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
     ),
     body2 = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = Selima,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp
     ),
     button = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Medium,
+        fontFamily = Selima,
+        fontWeight = FontWeight.Normal,
         fontSize = 15.sp
     ),
     caption1 = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = Selima,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp
     ),
     caption2 = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = Selima,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp
     ),
     caption3 = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = Selima,
         fontWeight = FontWeight.Normal,
         fontSize = 10.sp
     )

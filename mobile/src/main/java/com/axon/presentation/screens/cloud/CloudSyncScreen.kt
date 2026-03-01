@@ -79,7 +79,7 @@ fun CloudSyncScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.outline_arrow_top_right_24),
+                                painter = painterResource(id = R.drawable.outline_cloud_24),
                                 contentDescription = "Cloud Sync",
                                 tint = primaryColor,
                                 modifier = Modifier.size(28.dp)

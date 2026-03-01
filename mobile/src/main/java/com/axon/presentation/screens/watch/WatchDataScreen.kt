@@ -1,4 +1,4 @@
-package com.axon.presentation.screens
+package com.axon.presentation.screens.watch
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.axon.R
+import com.axon.presentation.screens.SensorDataViewModel
 import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
 import com.axon.presentation.screens.dashboard.primaryColor
@@ -93,7 +94,7 @@ fun WatchDataTopBar(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = "Watch Data",
+                    text = "Connection Status",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,

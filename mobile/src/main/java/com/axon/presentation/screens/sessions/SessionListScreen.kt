@@ -71,7 +71,7 @@ fun SessionListScreen(
                                 modifier = Modifier.size(28.dp),
                             )
                             Text(
-                                text = "Recording Sessions",
+                                text = "Session history",
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
@@ -184,18 +184,20 @@ fun SessionCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = dateFormat.format(Date(session.startTime)),
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = formatDuration(duration),
-                        color = primaryColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
+                    Column {
+                        Text(
+                            text = dateFormat.format(Date(session.startTime)),
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = formatDuration(duration),
+                            color = primaryColor,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -242,3 +244,4 @@ private fun formatDuration(millis: Long): String {
         "%02d:%02d".format(minutes, seconds)
     }
 }
+

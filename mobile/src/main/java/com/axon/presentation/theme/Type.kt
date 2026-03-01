@@ -2,18 +2,25 @@ package com.axon.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.axon.R
 
-// Custom font configuration that provides a clean, modern appearance
-val CleanFontFamily = FontFamily.SansSerif
+// Selima Font Family
+val Selima = FontFamily(
+    Font(R.font.selima, FontWeight.Normal)
+)
 
-// Using clean, modern font as main font
-val Lexend = CleanFontFamily
+// Custom font configuration
+val CleanFontFamily = Selima
 
-// Thin font for minimalistic design - using system font with explicit thin weight
-val ThinFont = CleanFontFamily
+// Using Selima as main font
+val Lexend = Selima
+
+// Thin font for minimalistic design
+val ThinFont = Selima
 
 // Enhanced Typography with focus on light, thin weights for aesthetic appeal
 val EnhancedTypography = Typography(
