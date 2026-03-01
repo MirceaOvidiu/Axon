@@ -1,0 +1,63 @@
+package com.axon.di
+
+import android.content.Context
+import com.axon.data.health.HealthServicesDataSource
+import com.axon.data.health.HealthServicesDataSourceAdapter
+import com.axon.data.manager.HealthServicesManager
+import com.axon.data.sensors.GyroDataSource
+import com.axon.domain.repository.recording.RecordingRepository
+import com.axon.domain.repository.recording.RecordingRepositoryContract
+import com.axon.domain.repository.sync.SyncRepository
+import com.axon.domain.repository.sync.SyncRepositoryImplementation
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object WearModule {
+
+    @Provides
+    @Singleton
+    fun provideGyroDataSource(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: Context
+    ): GyroDataSource = GyroDataSource(context)
+
+    @Provides
+    @Singleton
+    fun provideHealthServicesManager(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: Context
+    ): HealthServicesManager = HealthServicesManager(context)
+
+    @Provides
+    @Singleton
+    fun provideRecordingRepository(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: Context
+    ): RecordingRepository = RecordingRepository(context)
+
+    @Provides
+    @Singleton
+    fun provideSyncRepository(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: Context
+    ): SyncRepository = SyncRepositoryImplementation(context)
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class WearBindingsModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindHealthServicesDataSource(
+        adapter: HealthServicesDataSourceAdapter
+    ): HealthServicesDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindRecordingRepositoryContract(
+        repository: RecordingRepository
+    ): RecordingRepositoryContract
+}
