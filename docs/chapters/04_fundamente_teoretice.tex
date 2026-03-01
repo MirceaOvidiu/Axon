@@ -1,0 +1,137 @@
+\chapter{Fundamentele teoretice ale analizei miscarii si markerilor biologici}
+
+\hspace{0.75cm}Analiza mișcării umane reprezintă un domeniu interdisciplinar care combină principii din biomecanică, 
+fiziologie și inginerie pentru a cuantifica parametrii cinematici și cinetici ai corpului uman. 
+Elementul central al acestei paradigme este unitatea de măsură inerțială (IMU - Inertial Measurement Unit), 
+disponibilă astăzi în majoritatea ceasurilor inteligente comerciale.
+
+\section{Senzori inertiali (IMU): accelerometru si giroscop}
+
+\hspace{0.75cm}O unitate de măsură inerțială (IMU) este un dispozitiv electronic care măsoară și raportează forța specifică si viteza unghiulară, folosind o 
+combinație de accelerometre, giroscoape și, opțional, magnetometre. Aceste componente sunt realizate tehnologic sub formă de sisteme micro-electro-mecanice (MEMS), 
+care permit integrarea pe cipuri de dimensiuni mici, 
+cu un consum energetic redus, ideal pentru dispozitivele purtabile \cite{woodman_2007}.
+
+\subsection{Accelerometrul: Principiul de funcționare și ecuații}
+\hspace{0.75cm}Accelerometrul MEMS măsoară accelerația liniară a dispozitivului relativ la un sistem de referință inerțial. 
+Principiul fizic de bază este legea a II-a a lui Newton ($F = ma$), implementată de obicei printr-un sistem masă-arc amortizat. 
+Atunci când senzorul este supus unei accelerații, masa de probă se deplasează, modificând capacitatea electrică dintre plăcile unui condensator microscopic.
+
+\hspace{0.75cm}Este fundamental de înțeles că un accelerometru nu măsoară accelerația coordonată (derivata a doua a poziției), ci \textit{accelerația proprie} (proper acceleration). 
+Astfel, un accelerometru aflat în repaus pe suprafața Pământului va măsura o accelerație de $1g$ ($\approx 9.81 m/s^2$) orientată vertical în sus, 
+ca reacție la forța gravitațională. Ecuația vectorului măsurat $\mathbf{a}_{m}$ poate fi exprimată ca:
+\begin{equation}
+    \mathbf{a}_{m} = \mathbf{a}_{corp} - \mathbf{g} + \mathbf{b}_a + \mathbf{n}_a
+\end{equation}
+unde:
+\begin{itemize}
+    \item $\mathbf{a}_{corp}$ este accelerația reală (dinamică) a corpului datorată mișcării;
+    \item $\mathbf{g}$ este vectorul gravitațional (într-un sistem de coordonate local, $\mathbf{g} \approx [0, 0, -9.81]^T$);
+    \item $\mathbf{b}_a$ reprezintă bias-ul (deviația de la zero) a senzorului;
+    \item $\mathbf{n}_a$ este zgomotul de măsurare (white noise).
+\end{itemize}
+
+Deviația bias-ului în timp (drift) reprezintă o problemă majoră în sistemele de navigație inerțială (INS), deoarece integrarea dublă a erorii 
+pentru obținerea poziției duce la o creștere pătratică a erorii de poziție în timp ($error \propto t^2$) \cite{titterton_2004}. 
+Totuși, în analiza mișcării pentru reabilitare, accelerometrul este excelent pentru estimarea înclinației statice (folosind proiecția vectorului $\mathbf{g}$) 
+și pentru detectarea impacturilor sau a intensității mișcării.
+
+\subsection{Giroscopul: Măsurarea vitezei unghiulare}
+\hspace{0.75cm}Giroscopul măsoară viteza unghiulară ($\boldsymbol{\omega}$) în jurul axelor proprii ale senzorului (roll, pitch, yaw). 
+Spre deosebire de giroscoapele mecanice clasice bazate pe conservarea momentului cinetic al unei roți, giroscoapele MEMS utilizează forța Coriolis 
+asupra unei structuri vibrante.
+
+\hspace{0.75cm}Modelul semnalului măsurat de giroscop $\boldsymbol{\omega}_{m}$ este:
+\begin{equation}
+    \boldsymbol{\omega}_{m} = \boldsymbol{\omega}_{real} + \mathbf{b}_g + \mathbf{n}_g
+\end{equation}
+Integrarea vitezei unghiulare pentru a obține orientarea unghiulară ($\theta(t) = \int \omega(t) dt$) introduce, de asemenea, o eroare cumulativă (drift) 
+care crește liniar cu timpul. Deși giroscoapele sunt imune la accelerațiile liniare, ele pot fi sensibile la bias-ul de temperatură.
+
+\subsection{Fuziunea Senzorială (Sensor Fusion)}
+\hspace{0.75cm}Limitările individuale ale senzorilor impun utilizarea algoritmilor de fuziune senzorială pentru a obține o estimare robustă a orientării dispozitivului. 
+\begin{itemize}
+    \item Accelerometrul este precis pe termen lung pentru determinarea orientării față de gravitație (“jos”), dar este zgomotos la frecvențe înalte și afectat de mișcările bruște.
+    \item Giroscopul este precis pe termen scurt, capturând dinamicile rapide, dar suferă de drift pe termen lung.
+\end{itemize}
+
+O abordare computațională eficientă pentru sistemele embedded (precum ceasurile inteligente) este utilizarea unui filtru complementar 
+sau a algoritmului Madgwick \cite{madgwick_2011}, care combină cele două surse:
+\begin{equation}
+    \theta_{est} = \alpha \cdot (\theta_{gyro}) + (1 - \alpha) \cdot (\theta_{acc})
+\end{equation}
+unde $\alpha$ este un factor de pondere (uzual aproape de 1, ex: 0.98), permițând semnalului giroscopului să dicteze schimbările rapide, 
+în timp ce accelerometrul corectează lent deriva giroscopului.
+
+\section{Analiza fluiditatii: Algoritmul Spectral Arc Length - SPARC}
+\hspace{0.75cm}Fluiditatea mișcării (smoothness) este un biomarker esențial în recuperarea motorie, reflectând capacitatea sistemului nervos central de a controla coordonat mușchii efectori. La pacienții post-AVC, mișcările sunt adesea sacadate, fragmentate și ezitante.
+
+Majoritatea metricilor clasice de fluiditate (precum numărul de vârfuri de viteză) sunt sensibile la durata și amplitudinea mișcării, ceea ce face dificilă comparația între pacienți diferiți sau între stadii diferite de recuperare. Pentru a elimina aceste dependențe, Balasubramanian et al. au propus metrica \textit{Spectral Arc Length} (SPARC) \cite{balasubramanian_2015}.
+
+Principiul SPARC se bazează pe analiza profilului de viteză în domeniul frecvență. O mișcare fluidă are un spectru de frecvență dominat de componente de joasă frecvență, în timp ce o mișcare sacadată introduce zgomot și armonici la frecvențe înalte.
+Formula matematică a SPARC este definită negativ pentru a penaliza complexitatea spectrală:
+
+\begin{equation}
+SPARC = -\int_{0}^{\omega_c} \sqrt{\left(\frac{1}{\omega_c}\right)^2 + \left(\frac{d\hat{V}(\omega)}{d\omega}\right)^2} d\omega
+\end{equation}
+
+Unde:
+\begin{itemize}
+    \item $\hat{V}(\omega)$ este spectrul amplitudinii Fourier normalizat al profilului de viteză $v(t)$;
+    \item $\omega_c$ este frecvența de tăiere (cut-off), uzual setată la $20 \text{ Hz}$ pentru mișcări umane voluntare.
+\end{itemize}
+
+Avantajul major al SPARC este invarianța la scalarea temporală (mișcări mai lente sau mai rapide nu afectează scorul, atât timp cât forma profilului rămâne neschimbată), ceea ce îl face ideal pentru pacienții care își recapătă treptat viteza de execuție.
+
+\section{Analiza stabilitatii: Log Dimensionless Jerk - Acceleration - LDLJ-A}
+\hspace{0.75cm}O altă metrică robustă pentru evaluarea controlului motor fin este \textit{Log Dimensionless Jerk} (LDLJ). Jerk-ul reprezintă derivata a treia a poziției (sau rata de variație a accelerației): $J(t) = \frac{d^3p}{dt^3} = \frac{da}{dt}$.
+Minimizarea jerk-ului este un principiu fundamental de optimizare în controlul motor uman; creierul tinde natural să plănuiască traiectorii care minimizează schimbările bruște de accelerație \cite{hogan_stergiou_2015}.
+
+Calculul metricii implică integrarea pătratului jerk-ului pe durata mișcării, normalizată pentru a elimina dependența de amplitudine ($A$) și durată ($T$):
+
+\begin{equation}
+LDLJ = -\ln \left( \frac{T^3}{v_{peak}^2} \int_{0}^{T} |J(t)|^2 dt \right)
+\end{equation}
+
+Scorul este logaritmat pentru a reduce asimetria distribuției valorilor. Un scor LDLJ mai mare (mai puțin negativ, apropiat de zero) indică o mișcare mai controlată și mai stabilă. În sistemul nostru, unde calculul derivatei a treia din date discrete zgomotoase poate amplifica erorile, se aplică o filtrare prealabilă Butterworth low-pass de ordin 4 cu $f_c = 5-10 \text{Hz}$.
+
+\section{Recunoasterea tiparelor si corectitudinii: Dynamic Time Warping - DTW}
+\hspace{0.75cm}Compararea unei mișcări efectuate de pacient cu o mișcare de referință ("gold standard" executată de terapeut) este dificilă folosind distanța Euclidiană standard, deoarece durata execuției variază inevitabil.
+\textit{Dynamic Time Warping} (DTW) este un algoritm de programare dinamică care permite alinierea non-liniară a două serii de timp pentru a găsi similaritatea maximă, independent de variațiile de viteză \cite{sakoe_chiba_1978}.
+
+Fie două secvențe de date (ex. accelerație pe axa X):
+$X = (x_1, x_2, ..., x_n)$ (Pacient)
+$Y = (y_1, y_2, ..., y_m)$ (Terapeut)
+
+Algoritmul construiește o matrice de costuri locale $C \in \mathbb{R}^{n \times m}$, unde $C_{ij} = |x_i - y_j|$. Scopul este găsirea unui drum de cost minim $W = w_1, w_2, ..., w_k$ prin această matrice, care satisface condițiile de monotonie și continuitate. Distanța DTW finală reprezintă o măsură a "incorectitudinii" formei mișcării:
+
+\begin{equation}
+DTW(X, Y) = \min_{W} \left\{ \sum_{k=1}^{K} C_{w_k} \right\}
+\end{equation}
+
+Această metrică este utilizată în sistem pentru a oferi un scor procentual de "acuratețe a formei" (Shape Accuracy), ignorând faptul că pacientul se mișcă mai încet decât terapeutul.
+
+\section{Variabilitatea ritmului cardiac prin fotopletismografie}
+\hspace{0.75cm}Monitorizarea efortului fiziologic și a stresului este esențială pentru a preveni surmenajul în terapia post-AVC. 
+Deoarece accesul la un electrocardiograf (EKG) de precizie este limitat în mediul ambulatoriu (acasă), dispozitivele purtabile moderne utilizează tehnologia optică a fotopletismografiei (PPG).
+
+\subsection{Fotopletismografia (PPG): Principiu de funcționare}
+\hspace{0.75cm}Senzorul PPG utilizează o sursă de lumină (LED-uri verzi și infraroșii) și un fotodetector.
+Principiul se bazează pe absorbția diferențială a luminii de către hemoglobina din sânge. 
+Când inima pompează sânge (sistolă), volumul de sânge din capilarele de la încheietura mâinii crește, absorbind mai multă lumină verde. 
+Între bătăi (diastolă), volumul scade, iar reflexia luminii este maximă.
+Semnalul rezultat, numit undă pletismografică sau undă de puls, permite determinarea precisă a momentelor bătăilor inimii.
+
+\subsection{Analiza HRV (Heart Rate Variability)}
+\hspace{0.75cm}Variabilitatea Ritmului Cardiac (HRV) analizează variația intervalelor de timp dintre bătăi consecutive ale inimii (intervale R-R sau IBI - Inter-Beat Intervals).
+HRV este un indicator non-invaziv al echilibrului sistemului nervos autonom (balanța simpatic/parasimpatic).
+Un HRV ridicat indică o capacitate bună de adaptare la stres și recuperare eficientă, în timp ce un HRV scăzut semnalează dominanța sistemului nervos simpatic (stres cronic, oboseală).
+
+Din datele brute PPG, se extrag intervalele R-R, pe baza cărora se calculează RMSSD (\textit{Root Mean Square of Successive Differences}), metrica standard "gold-standard" pentru activitatea parasimpatică în perioade scurte de timp:
+
+\begin{equation}
+RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
+\end{equation}
+
+Această metrică este utilizată în sistem pentru a calcula un "Scor de Recuperare" (Readiness Score) zilnic. \cite{shaffer_ginsberg_2017}. 
+Dacă scorul este scăzut sub baseline-ul personal al pacientului, aplicația va recomanda automat reducerea intensității exercițiilor pentru acea zi, prevenind riscul de recidivă.
