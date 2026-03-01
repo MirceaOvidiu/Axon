@@ -37,7 +37,6 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.axon.presentation.theme.AxonTheme
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -92,7 +91,7 @@ fun MainScreen(
                 .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center,
     ) {
-        // BPM at top of circle
+        // BPM at top of circle - always visible
         Column(
             modifier = Modifier.align(Alignment.TopCenter).padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -148,15 +147,6 @@ fun MainScreen(
                 onStopRecording = { onIntent(MainIntent.StopRecording) },
             )
 
-            // Show recording duration when recording
-            if (uiState.isRecording) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formatDuration(uiState.recordingDuration),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.caption1,
-                )
-            }
 
             // Show sync status
             if (uiState.isSyncing) {
@@ -250,13 +240,3 @@ fun CircularRecordingButton(
     }
 }
 
-fun formatDuration(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
-    return if (hours > 0) {
-        "%d:%02d:%02d".format(hours, minutes, seconds)
-    } else {
-        "%02d:%02d".format(minutes, seconds)
-    }
-}

@@ -10,7 +10,7 @@ fun AxonTheme(content: @Composable () -> Unit) {
      * See: https://developer.android.com/jetpack/compose/designsystems/custom
      */
     MaterialTheme(
-        typography = MontserratTypography,
+        typography = SelimaTypography,
         content = content,
     )
 }

@@ -3,6 +3,10 @@ package com.axon
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -23,7 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.axon.domain.model.AuthState
 import com.axon.presentation.screens.SensorDataViewModel
-import com.axon.presentation.screens.WatchDataScreen
+import com.axon.presentation.screens.watch.WatchDataScreen
 import com.axon.presentation.screens.auth.AuthScreen
 import com.axon.presentation.screens.auth.AuthViewModel
 import com.axon.presentation.screens.cloud.CloudSyncScreen
@@ -127,7 +131,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     icon = {
                                         Icon(
-                                            painterResource(R.drawable.outline_arrow_top_right_24),
+                                            painterResource(R.drawable.outline_cloud_24),
                                             contentDescription = "Cloud",
                                         )
                                     },
@@ -154,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     icon = {
                                         Icon(
-                                            painterResource(R.drawable.outline_display_settings_24),
+                                            painterResource(R.drawable.outline_watch_24),
                                             contentDescription = "Watch",
                                         )
                                     },
@@ -176,6 +180,34 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding),
+                        enterTransition = {
+                            fadeIn(animationSpec = tween(300)) +
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                    animationSpec = tween(300)
+                                )
+                        },
+                        exitTransition = {
+                            fadeOut(animationSpec = tween(300)) +
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                    animationSpec = tween(300)
+                                )
+                        },
+                        popEnterTransition = {
+                            fadeIn(animationSpec = tween(300)) +
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                    animationSpec = tween(300)
+                                )
+                        },
+                        popExitTransition = {
+                            fadeOut(animationSpec = tween(300)) +
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                    animationSpec = tween(300)
+                                )
+                        },
                     ) {
                         composable("auth") {
                             AuthScreen(

@@ -1,6 +1,8 @@
 package com.axon.presentation.screens.auth
 
 import android.widget.Toast
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,14 +35,17 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -120,24 +125,65 @@ fun AuthScreen(
     var displayName by remember { mutableStateOf("") }
     var showForgotPassword by remember { mutableStateOf(false) }
 
+    // Touch-reactive gradient state
+    var touchX by remember { mutableFloatStateOf(540f) }
+    var touchY by remember { mutableFloatStateOf(800f) }
+    var isTouching by remember { mutableStateOf(false) }
+
+    val animatedRadius by animateFloatAsState(
+        targetValue = if (isTouching) 1200f else 900f,
+        animationSpec = tween(600),
+        label = "radius"
+    )
+
+    val scrollState = rememberScrollState()
+    val scrollOffset = scrollState.value.toFloat()
+
     AxonTheme(darkTheme = true) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFF0A0E14))
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val position = event.changes.firstOrNull()?.position
+                            if (position != null) {
+                                touchX = position.x
+                                touchY = position.y
+                                isTouching = event.changes.any { it.pressed }
+                            }
+                        }
+                    }
+                }
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            if (isTouching) Color(0xFF1E4D7B) else Color(0xFF1A3A5C),
+                            Color(0xFF0F1A2A),
+                            Color(0xFF0A0E14),
+                        ),
+                        center = Offset(touchX, touchY + scrollOffset),
+                        radius = animatedRadius,
+                    )
+                )
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF0A0E14),
-                            Color(0xFF151C25),
-                            Color(0xFF0A0E14)
-                        )
+                            Color(0x001A3A5C),
+                            Color(0x332196F3),
+                            Color(0x00000000),
+                        ),
+                        startY = scrollOffset,
+                        endY = 600f + scrollOffset,
                     )
                 )
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -162,9 +208,9 @@ fun AuthScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF151C25).copy(alpha = 0.8f)
+                        containerColor = Color(0xFF151C25).copy(alpha = 0.25f)
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
