@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -137,7 +138,7 @@ fun AuthScreen(
     )
 
     val scrollState = rememberScrollState()
-    val scrollOffset = scrollState.value.toFloat()
+    val scrollOffset by remember { derivedStateOf { scrollState.value.toFloat() } }
 
     AxonTheme(darkTheme = true) {
         Box(
