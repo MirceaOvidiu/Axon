@@ -7,7 +7,6 @@ import com.axon.domain.repository.sync.SyncRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,12 +31,6 @@ data class SyncAllResult(
     val errorMessage: String? = null,
 )
 
-data class SyncState(
-    val isSyncing: Boolean = false,
-    val lastSyncResult: String? = null,
-    val pendingSessionsCount: Int = 0,
-)
-
 @Singleton
 class SyncUseCase
     @Inject
@@ -47,7 +40,6 @@ class SyncUseCase
         private val gyroDataSource: GyroDataSource,
         private val healthDataSource: HealthServicesDataSource,
     ) {
-        private val _state = MutableStateFlow(SyncState())
 
     private var liveSendJob: Job? = null
         private var lastSendTime = 0L

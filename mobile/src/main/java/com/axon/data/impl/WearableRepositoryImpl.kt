@@ -34,7 +34,7 @@ class WearableRepositoryImpl
                 val nodes = nodeClient.connectedNodes.await()
                 val firstNode = nodes.firstOrNull()
                 _connectedNodeName.value = firstNode?.displayName
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _connectedNodeName.value = null
             }
         }
