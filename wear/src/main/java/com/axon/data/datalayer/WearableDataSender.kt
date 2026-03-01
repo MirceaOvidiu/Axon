@@ -3,7 +3,6 @@ package com.axon.data.datalayer
 import android.content.Context
 import android.util.Log
 import com.axon.domain.models.SessionTransferData
-import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
@@ -13,7 +12,6 @@ import kotlinx.coroutines.tasks.await
 class WearableDataSender(
     context: Context,
 ) {
-    private val dataClient: DataClient = Wearable.getDataClient(context)
     private val nodeClient = Wearable.getNodeClient(context)
     private val messageClient: MessageClient = Wearable.getMessageClient(context)
     private val gson = Gson()
@@ -29,7 +27,7 @@ class WearableDataSender(
         const val KEY_TIMESTAMP = "timestamp"
     }
 
-    suspend fun sendSensorData(
+    fun sendSensorData(
         heartRate: Double,
         gyroX: Float,
         gyroY: Float,

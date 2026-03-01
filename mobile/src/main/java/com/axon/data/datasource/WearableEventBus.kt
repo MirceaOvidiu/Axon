@@ -17,14 +17,9 @@ class WearableEventBus
 
         private val _sessionReceivedEvents =
             MutableSharedFlow<SessionReceivedDto>(extraBufferCapacity = 1)
-        val sessionReceivedEvents: SharedFlow<SessionReceivedDto> =
-            _sessionReceivedEvents.asSharedFlow()
 
-        fun emitSensorData(data: SensorDataDto) {
+    fun emitSensorData(data: SensorDataDto) {
             _sensorDataEvents.tryEmit(data)
         }
 
-        fun emitSessionReceived(data: SessionReceivedDto) {
-            _sessionReceivedEvents.tryEmit(data)
-        }
-    }
+}

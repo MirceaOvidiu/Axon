@@ -27,16 +27,6 @@ fun Session.toEntity(): SessionEntity =
         dataPointCount = this.dataPointCount,
     )
 
-fun SessionTransferData.toDomainSession(userId: String): Session =
-    Session(
-        id = this.sessionId,
-        userId = userId,
-        startTime = this.startTime,
-        endTime = this.endTime,
-        receivedAt = System.currentTimeMillis(),
-        dataPointCount = this.sensorReadings.size,
-    )
-
 fun SessionTransferData.toSensorDataEntities(sessionId: Long): List<SensorDataEntity> =
     this.sensorReadings.map { reading ->
         SensorDataEntity(

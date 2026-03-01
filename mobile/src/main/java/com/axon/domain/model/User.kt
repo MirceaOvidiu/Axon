@@ -16,8 +16,6 @@ data class AuthResult(
 )
 
 enum class AuthState {
-    LOADING,
     AUTHENTICATED,
     NOT_AUTHENTICATED,
-    ERROR
 }

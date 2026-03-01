@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 pluginManagement {
     repositories {
         google {
@@ -12,7 +14,6 @@ pluginManagement {
     }
 }
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
@@ -20,7 +21,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Axon"
-include(":mobile")
-include(":wear")
 include(":mobile")
 include(":wear")

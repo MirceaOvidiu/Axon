@@ -14,7 +14,7 @@ import javax.inject.Inject
 class WearableRepositoryImpl
     @Inject
     constructor(
-        private val context: Context,
+        context: Context,
         private val eventBus: WearableEventBus,
     ) : WearableRepository {
         private val nodeClient = Wearable.getNodeClient(context)

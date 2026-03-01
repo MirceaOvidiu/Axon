@@ -8,8 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,26 +49,13 @@ class RecordingUseCase
         private val healthDataSource: HealthServicesDataSource,
     ) {
         private val _state = MutableStateFlow(RecordingState())
-        val state: StateFlow<RecordingState> = _state.asStateFlow()
 
-        private var durationJob: Job? = null
+    private var durationJob: Job? = null
         private var recordingJob: Job? = null
 
         private val recordingIntervalMs = 20L // 50Hz
 
-        suspend fun initialize() {
-            val activeSession = getActiveSession()
-            if (activeSession != null) {
-                _state.value =
-                    RecordingState(
-                        isRecording = true,
-                        sessionId = activeSession.id,
-                        startTime = activeSession.startTime,
-                    )
-            }
-        }
-
-        suspend fun startRecording(): StartRecordingResult =
+    suspend fun startRecording(): StartRecordingResult =
             try {
                 val sessionId = recordingRepository.startNewSession()
                 StartRecordingResult(
@@ -87,25 +72,7 @@ class RecordingUseCase
                 )
             }
 
-        fun startRecordingWithState(scope: CoroutineScope) {
-            scope.launch {
-                val result = startRecording()
-                if (result.isSuccess) {
-                    _state.value =
-                        RecordingState(
-                            isRecording = true,
-                            sessionId = result.sessionId,
-                            startTime = result.startTime,
-                        )
-                    startDurationUpdates(scope)
-                    startDataCollection(scope)
-                } else {
-                    _state.value = _state.value.copy(errorMessage = result.errorMessage)
-                }
-            }
-        }
-
-        suspend fun stopRecording(
+    suspend fun stopRecording(
             sessionId: Long,
             startTime: Long,
         ): StopRecordingResult =
@@ -129,28 +96,7 @@ class RecordingUseCase
                 )
             }
 
-        fun stopRecordingWithState(scope: CoroutineScope): Job {
-            return scope.launch {
-                val sessionId = _state.value.sessionId ?: return@launch
-                val startTime = _state.value.startTime
-
-                durationJob?.cancel()
-                recordingJob?.cancel()
-
-                val result = stopRecording(sessionId, startTime)
-                _state.value =
-                    RecordingState(
-                        isRecording = false,
-                        sessionId = null,
-                        startTime = 0L,
-                        duration = 0L,
-                        dataPointsCount = 0,
-                        errorMessage = if (!result.isSuccess) result.errorMessage else null,
-                    )
-            }
-        }
-
-        suspend fun saveSensorData(
+    suspend fun saveSensorData(
             sessionId: Long,
             heartRate: Double?,
             gyroX: Float,
@@ -207,7 +153,4 @@ class RecordingUseCase
                 }
         }
 
-        fun clearError() {
-            _state.value = _state.value.copy(errorMessage = null)
-        }
-    }
+}

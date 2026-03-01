@@ -10,7 +10,7 @@ interface CloudSessionRepository {
     suspend fun downloadSession(firestoreId: String): Session?
     suspend fun downloadSensorData(firestoreId: String): List<SensorData>
     suspend fun deleteCloudSession(firestoreId: String): Boolean
-    suspend fun syncSessionsWithCloud(): Boolean
+    suspend fun syncSessionsWithCloud(): Boolean  // Returns false on error/failure
     suspend fun cleanupOldNumericSessions(): Boolean  // Add cleanup method
     fun getUploadProgress(): Flow<Float>
     fun getDownloadProgress(): Flow<Float>

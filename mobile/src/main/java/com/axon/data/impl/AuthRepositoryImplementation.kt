@@ -1,5 +1,6 @@
 package com.axon.data.impl
 
+import androidx.core.net.toUri
 import com.axon.domain.model.AuthResult
 import com.axon.domain.model.AuthState
 import com.axon.domain.model.User
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.core.net.toUri
 
 @Singleton
 class AuthRepositoryImplementation @Inject constructor(

@@ -78,7 +78,6 @@ class MainViewModel
                             val now = System.currentTimeMillis()
                             if (now - lastUpdate > 50) { // 20 FPS for UI
                                 _uiState.update { it.copy(gyroscopeData = values) }
-                                lastUpdate = now
                             }
                         }
                     }

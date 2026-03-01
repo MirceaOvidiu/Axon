@@ -8,8 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,9 +48,8 @@ class SyncUseCase
         private val healthDataSource: HealthServicesDataSource,
     ) {
         private val _state = MutableStateFlow(SyncState())
-        val state: StateFlow<SyncState> = _state.asStateFlow()
 
-        private var liveSendJob: Job? = null
+    private var liveSendJob: Job? = null
         private var lastSendTime = 0L
         private val sendIntervalMs = 500L
 
@@ -134,14 +131,7 @@ class SyncUseCase
                 )
             }
 
-        suspend fun sendLiveSensorData(
-            heartRate: Double,
-            gyroX: Float,
-            gyroY: Float,
-            gyroZ: Float,
-        ) = syncRepository.sendSensorData(heartRate, gyroX, gyroY, gyroZ)
-
-        fun startLiveSending(
+    fun startLiveSending(
             scope: CoroutineScope,
             isRecordingProvider: () -> Boolean,
         ) {
@@ -170,49 +160,4 @@ class SyncUseCase
             liveSendJob = null
         }
 
-        fun syncSessionWithState(
-            scope: CoroutineScope,
-            sessionId: Long,
-        ) {
-            scope.launch {
-                _state.value = _state.value.copy(isSyncing = true, lastSyncResult = null)
-
-                val result = syncSession(sessionId)
-                _state.value =
-                    _state.value.copy(
-                        isSyncing = false,
-                        lastSyncResult =
-                            if (result.isSuccess) {
-                                "Synced ${result.readingsCount} readings"
-                            } else {
-                                result.errorMessage ?: "Sync failed"
-                            },
-                    )
-            }
-        }
-
-        fun syncAllSessionsWithState(scope: CoroutineScope) {
-            scope.launch {
-                _state.value = _state.value.copy(isSyncing = true, lastSyncResult = null)
-
-                val result = syncAllSessions()
-                _state.value =
-                    _state.value.copy(
-                        isSyncing = false,
-                        lastSyncResult =
-                            if (result.isSuccess) {
-                                "Synced ${result.syncedCount} of ${result.totalCount} sessions (${result.totalReadingsSynced} readings)"
-                            } else if (result.syncedCount > 0) {
-                                "Synced ${result.syncedCount} of ${result.totalCount} sessions, ${result.failedSessionIds.size} failed"
-                            } else {
-                                result.errorMessage ?: "Sync failed"
-                            },
-                        pendingSessionsCount = result.failedSessionIds.size,
-                    )
-            }
-        }
-
-        fun clearResult() {
-            _state.value = _state.value.copy(lastSyncResult = null)
-        }
-    }
+}

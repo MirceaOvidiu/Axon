@@ -83,6 +83,12 @@ kotlin {
 
 @Suppress("ktlint:standard:final-newline")
 dependencies {
+    constraints {
+        implementation("androidx.concurrent:concurrent-futures:1.3.0") {
+            because("Resolve conflict between lock file (1.1.0) and transitive dependency (1.2.0)")
+        }
+    }
+
     implementation(libs.material)
     implementation(libs.androidx.core.ktx)
 
