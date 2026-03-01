@@ -2,7 +2,6 @@ package com.axon.presentation.screens.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.axon.domain.model.AuthState
 import com.axon.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,9 +89,6 @@ class AuthViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 
-    fun clearResetEmailStatus() {
-        _uiState.value = _uiState.value.copy(resetEmailSent = false)
-    }
 }
 
 data class AuthUiState(

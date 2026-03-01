@@ -217,7 +217,23 @@ class CloudSessionRepositoryImplementation @Inject constructor(
         }
     }
 
-    override suspend fun syncSessionsWithCloud(): Boolean = true
+    override suspend fun syncSessionsWithCloud(): Boolean {
+        return try {
+            val uid = authRepository.getCurrentUser()?.uid
+                ?: throw IllegalStateException("User not authenticated")
+
+            Log.d(TAG, "Starting bidirectional sync for user $uid")
+
+            // Download all cloud sessions to check what exists
+            downloadAllSessions()
+
+            Log.d(TAG, "Cloud sync completed successfully")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Cloud sync failed: ${e.message}", e)
+            false
+        }
+    }
 
     override fun getUploadProgress(): Flow<Float> = _uploadProgress.asStateFlow()
     override fun getDownloadProgress(): Flow<Float> = _downloadProgress.asStateFlow()

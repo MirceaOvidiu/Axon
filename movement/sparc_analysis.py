@@ -11,6 +11,7 @@ Jerky, fragmented movements spread energy across higher frequencies, producing a
 longer (more negative) arc length.
 """
 
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -266,7 +267,8 @@ def plot_session(df: pd.DataFrame, metrics: StabilityMetrics,
     ax.set_title("Fourier magnitude spectrum (SPARC input)")
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
-    plt.savefig("sparc_report.png", dpi=150)
+    save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sparc_report.png")
+    plt.savefig(save_path, dpi=150)
     plt.show()
 
 
@@ -276,7 +278,9 @@ def plot_session(df: pd.DataFrame, metrics: StabilityMetrics,
 
 def main():
     # --- Load data ---
-    df = pd.read_csv("sessionData.csv")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(script_dir, "sessionData.csv")
+    df = pd.read_csv(csv_path)
     print(f"Loaded {len(df)} samples  |  columns: {list(df.columns)}")
 
     # Sampling frequency: adjust to your Wear OS sensor rate.

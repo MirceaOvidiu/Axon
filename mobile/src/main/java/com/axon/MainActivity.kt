@@ -27,7 +27,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.axon.domain.model.AuthState
 import com.axon.presentation.screens.SensorDataViewModel
-import com.axon.presentation.screens.watch.WatchDataScreen
 import com.axon.presentation.screens.auth.AuthScreen
 import com.axon.presentation.screens.auth.AuthViewModel
 import com.axon.presentation.screens.cloud.CloudSyncScreen
@@ -36,6 +35,7 @@ import com.axon.presentation.screens.dashboard.RecoveryDashboardScreen
 import com.axon.presentation.screens.sessions.SessionDetailScreen
 import com.axon.presentation.screens.sessions.SessionListScreen
 import com.axon.presentation.screens.sessions.SessionViewModel
+import com.axon.presentation.screens.watch.WatchDataScreen
 import com.axon.presentation.theme.AxonTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -56,7 +56,6 @@ class MainActivity : ComponentActivity() {
                 val startDestination = when (authState) {
                     AuthState.AUTHENTICATED -> "dashboard"
                     AuthState.NOT_AUTHENTICATED -> "auth"
-                    else -> "auth"
                 }
 
                 Scaffold(

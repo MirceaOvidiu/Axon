@@ -19,15 +19,3 @@ data class SensorReading(
     val gyroZ: Float?,
 )
 
-/**
- * Extension function to convert SensorReading to SensorData for database storage
- */
-fun SensorReading.toSensorData(sessionId: Long) =
-    SensorData(
-        sessionId = sessionId,
-        timestamp = timestamp,
-        heartRate = heartRate,
-        gyroX = gyroX,
-        gyroY = gyroY,
-        gyroZ = gyroZ,
-    )

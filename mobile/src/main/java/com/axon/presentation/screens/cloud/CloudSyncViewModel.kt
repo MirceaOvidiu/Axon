@@ -7,18 +7,18 @@ import com.axon.domain.repository.AuthRepository
 import com.axon.domain.repository.CloudSessionRepository
 import com.axon.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
 class CloudSyncViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val cloudSessionRepository: CloudSessionRepository,
-    private val authRepository: AuthRepository
+    authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CloudSyncUiState())
@@ -109,7 +109,7 @@ class CloudSyncViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isDownloading = true)
 
                 val session = cloudSessionRepository.downloadSession(firestoreId)
-                val sensorData = cloudSessionRepository.downloadSensorData(firestoreId)
+                cloudSessionRepository.downloadSensorData(firestoreId)
 
                 if (session != null) {
                     // Save to local database
@@ -154,7 +154,7 @@ class CloudSyncViewModel @Inject constructor(
                         } else {
                             failed++
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         failed++
                     }
                 }
@@ -196,37 +196,6 @@ class CloudSyncViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = "Delete failed: ${e.message}"
-                )
-            }
-        }
-    }
-
-    fun clearMessages() {
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            successMessage = null
-        )
-    }
-
-    fun cleanupOldSessions() {
-        viewModelScope.launch {
-            try {
-                val success = cloudSessionRepository.cleanupOldNumericSessions()
-                if (success) {
-                    // Refresh cloud sessions to reflect changes
-                    loadCloudSessions()
-                    _uiState.value = _uiState.value.copy(
-                        successMessage = "Old sessions cleaned up successfully"
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = "Failed to cleanup old sessions"
-                    )
-                }
-                clearMessagesAfterDelay()
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Cleanup failed: ${e.message}"
                 )
             }
         }

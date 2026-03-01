@@ -40,11 +40,7 @@ fun AxonLogo(
 
 enum class LogoSize(
     val fontSize: TextUnit,
-    val subTextSize: TextUnit,
     val letterSpacing: TextUnit
 ) {
-    SMALL(32.sp, 12.sp, 4.sp),
-    MEDIUM(48.sp, 14.sp, 6.sp),
-    LARGE(64.sp, 16.sp, 8.sp),
-    EXTRA_LARGE(80.sp, 18.sp, 10.sp)
+    LARGE(64.sp, 8.sp),
 }

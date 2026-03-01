@@ -14,7 +14,7 @@ import javax.inject.Inject
 class WearableRepositoryImpl
     @Inject
     constructor(
-        private val context: Context,
+        context: Context,
         private val eventBus: WearableEventBus,
     ) : WearableRepository {
         private val nodeClient = Wearable.getNodeClient(context)
@@ -34,7 +34,7 @@ class WearableRepositoryImpl
                 val nodes = nodeClient.connectedNodes.await()
                 val firstNode = nodes.firstOrNull()
                 _connectedNodeName.value = firstNode?.displayName
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _connectedNodeName.value = null
             }
         }

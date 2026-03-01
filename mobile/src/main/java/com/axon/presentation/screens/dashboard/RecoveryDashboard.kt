@@ -130,7 +130,7 @@ fun TopHeader(
     // Logout Confirmation Dialog
     if (showLogoutDialog) {
         AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
+            onDismissRequest = { },
             containerColor = cardDark,
             title = {
                 Text(
@@ -151,7 +151,6 @@ fun TopHeader(
             confirmButton = {
                 Button(
                     onClick = {
-                        showLogoutDialog = false
                         authViewModel?.signOut()
                         onNavigateToAuth()
                     },
@@ -170,7 +169,7 @@ fun TopHeader(
             },
             dismissButton = {
                 OutlinedButton(
-                    onClick = { showLogoutDialog = false },
+                    onClick = { },
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = Color.White
                     ),

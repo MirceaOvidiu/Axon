@@ -73,12 +73,11 @@ class MainViewModel
                     }
                     // Collect gyroscope with throttling for UI
                     launch {
-                        var lastUpdate = 0L
+                        val lastUpdate = 0L
                         gyroDataSource.values.collect { values ->
                             val now = System.currentTimeMillis()
                             if (now - lastUpdate > 50) { // 20 FPS for UI
                                 _uiState.update { it.copy(gyroscopeData = values) }
-                                lastUpdate = now
                             }
                         }
                     }

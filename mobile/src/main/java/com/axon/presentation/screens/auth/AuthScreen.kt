@@ -114,6 +114,8 @@ fun AuthScreen(
                 } else {
                     Toast.makeText(context, "Unexpected credential type", Toast.LENGTH_SHORT).show()
                 }
+            } catch (_: androidx.credentials.exceptions.NoCredentialException) {
+                Toast.makeText(context, "Sign-in cancelled", Toast.LENGTH_SHORT).show()
             } catch (e: GetCredentialException) {
                 Toast.makeText(context, e.message ?: "Google Sign-In failed", Toast.LENGTH_SHORT).show()
             }
