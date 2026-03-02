@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.26)  1 MAR 2026 15:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.26)  1 MAR 2026 22:58
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -301,13 +301,18 @@ Overfull \hbox (1.07338pt too wide) in paragraph at lines 34--38
 []\OT1/cmr/m/n/12 Devia[]ia bias-ului ^^^Pn timp (drift) re-pre-zint^^Ua o pro-blem^^Ua ma-jor^^Ua ^^^Pn sis-te-mele de naviga[]ie
  []
 
+
+Overfull \hbox (2.71863pt too wide) in paragraph at lines 51--51
+|[]\OT1/cmr/bx/n/14.4 Fuziunea sen-zo-rial^^Ua: fil-tru com-ple-men-tar []i al-go-rit-mul Ma-
+ []
+
 [9] [10] [11]) (chapters/05_solutia_propusa.tex [12]
 Capitolul 5.
 [13
 
 ]
-Overfull \hbox (16.88559pt too wide) in paragraph at lines 27--27
-|[]\OT1/cmr/bx/n/17.28 Componenta Software: Ar-hi-tec-tura aplica[]iei Wear
+Underfull \hbox (badness 10000) in paragraph at lines 43--45
+
  []
 
 ) (chapters/06_implementare.tex [14]
@@ -339,7 +344,7 @@ Here is how much of TeX's memory you used:
  1141 hyphenation exceptions out of 8191
  57i,7n,65p,509b,263s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\Mircea\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1200.pk><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx6.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx7.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmib10.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti7.pfb><C:/Users/Mircea/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on src.pdf (21 pages, 299001 bytes).
+Output written on src.pdf (21 pages, 297646 bytes).
 PDF statistics:
  165 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1772372270.79772 "c:/Users/Mircea/AndroidStudioProjects/Axon/docs/src.tex" "src.pdf" "src" 1772372271.57285 0
+["pdflatex"] 1772398684.09209 "c:/Users/Mircea/AndroidStudioProjects/Axon/docs/src.tex" "src.pdf" "src" 1772398684.89107 0
   "C:/Users/Mircea/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1772268442 80909 eab91d9745dd2edfd62a31d53cd5fe15 ""
   "C:/Users/Mircea/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrm1200.pk" 1772269526 14064 91d7bda1b345dc198fc64484bcf8c231 ""
   "C:/Users/Mircea/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1769462717 13333971 0c01653549098f6615ccd87a53d8aee4 ""
@@ -86,20 +86,20 @@
   "C:/Users/Mircea/AppData/Local/Programs/MiKTeX/tex/latex/setspace/setspace.sty" 1670403145 22490 8cac309b79a4c53a4ffce4b1b07aead0 ""
   "C:/Users/Mircea/AppData/Local/Programs/MiKTeX/tex/latex/titlesec/titlesec.sty" 1736608268 48766 87a17a4ef312a39cd43896e34a679a56 ""
   "c:/Users/Mircea/AndroidStudioProjects/Axon/docs/src.tex" 1772370897 2758 0a7d1150cb9ec0478b37b831840637b0 ""
-  "chapters/01_introducere.tex" 1772370590 4340 0806c9e14b2c7b03ac6e9c8707af1cb9 ""
+  "chapters/01_introducere.tex" 1772397328 4329 b09c2d74033bf4500c4b3d7cfa26cf36 ""
   "chapters/02_patologia.tex" 1772368998 3665 8749e2037384b35b0c2a5a2fd0b770bb ""
   "chapters/03_stadiul_actual.tex" 1772368998 260 a3bcaaf8181995b9fbbea389bca8086e ""
-  "chapters/04_fundamente_teoretice.tex" 1772372270 11765 cb31c1c553922a279a2b57b85d756589 ""
-  "chapters/05_solutia_propusa.tex" 1772372215 4029 e20bf1169b2682592beaab2358106e4e ""
+  "chapters/04_fundamente_teoretice.tex" 1772397764 11586 e44ed2e39f24878859a194f4571a9fc8 ""
+  "chapters/05_solutia_propusa.tex" 1772398683 3686 a5b0dc568a33a5565bf6b0c84af786a0 ""
   "chapters/06_implementare.tex" 1772368998 384 f5bdc338d74f92c87bbcdab2e51972ef ""
   "chapters/07_testare_rezultate.tex" 1772368998 298 12b938e0c6b3f3f43d23ff0c1bc3bece ""
   "chapters/08_concluzii.tex" 1772368998 111 c4b8903bea55a24225ed11dbc03b233e ""
   "chapters/bibliography.tex" 1772370785 5091 9be1898e5ef40916cb9616a82444c3f7 ""
   "logos/acs.png" 1772286161 18447 ab0e0697c9c6d5a4fd5de2441661f173 ""
   "logos/upb.png" 1772286161 32122 d9963422a4e612356d5c3c65151ccbb2 ""
-  "src.aux" 1772372271 7593 9773837dd2bf31021631e2bc70f9efe4 "pdflatex"
+  "src.aux" 1772398684 7407 1e0a34cbb3bfea6037a6af8ddbfaf0a3 "pdflatex"
   "src.tex" 1772370897 2758 0a7d1150cb9ec0478b37b831840637b0 ""
-  "src.toc" 1772372271 4044 0a93e60ac9cf6b2885316004e44279d3 "pdflatex"
+  "src.toc" 1772398684 3899 37e1e2e3730e56e5e266d36b236dfca6 "pdflatex"
   (generated)
   "src.aux"
   "src.log"
