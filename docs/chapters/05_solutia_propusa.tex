@@ -5,43 +5,51 @@
 în mediul familiar al pacientului. 
 Arhitectura sistemului este de tip \textit{Hub-and-Spoke}, centrată pe pacient, și este compusă din trei noduri esențiale:
 \begin{itemize}
-\item Senzoristica (Wearable): Colectează date biomecanice.
-\item Gateway (Mobile): Agregă datele, oferă interfața vizuală principală și gestionează comunicația cu infrastructura cloud.
-\item Central (Cloud): Asigură persistența datelor, autentificarea securizată și rulează algoritmii de evaluare și personalizare a tratamentului.
+\item Wearable: Colectează date biomecanice si biologice.
+\item Mobile: Agregă datele, oferă interfața vizuală principală și gestionează comunicația cu infrastructura cloud.
+\item Cloud: Asigură persistența datelor, autentificarea securizată și rulează algoritmii de evaluare și personalizare a tratamentului.
 \end{itemize}
 
 Fluxul informațional este bidirecțional: datele curg de la pacient către cloud pentru monitorizare, iar planurile de tratament și ajustările parametrilor curg de la terapeut (via Cloud) înapoi către dispozitivul pacientului.
 
-\section{Componenta Hardware: Specificații Google Pixel Watch 3 și limitări}
-\hspace{0.75cm}Pentru componenta de achiziție a datelor, a fost selectat dispozitivul \textit{Google Pixel Watch 3}. Alegerea acestui dispozitiv comercial (COTS - Commercial Off-The-Shelf) în detrimentul unui echipament medical dedicat a fost motivată de:
+\section{Hardware: Google Pixel Watch 3 și limitări}
+\hspace{0.75cm}Pentru componenta de achiziție a datelor, a fost utilzat \textit{Google Pixel Watch 3}. Alegerea acestui dispozitiv comercial s-a bazat pe următoarele criterii:
 \begin{itemize}
-    \item Senzoristica integrată: Dispozitivul dispune de un IMU (Inertial Measurement Unit) de ultimă generație de la Bosch Sensortec, 
+    \item Senzoristica integrată: Dispozitivul dispune de un IMU Bosch Sensortec, 
     care combină un accelerometru triaxial cu un giroscop, oferind o rată de eșantionare stabilă (până la 100Hz), suficientă pentru capturarea mișcărilor 
     umane (uzual sub 20Hz).
     \item Senzorul PPG: Permite monitorizarea continuă a ritmului cardiac și calculul HRV pentru estimarea oboselii.
 \end{itemize}
 
-Limitări identificate:
-Principala provocare hardware este autonomia bateriei în regim de monitorizare continuă cu senzorii activi la frecvență maximă. De asemenea, ecranul mic al ceasului impune o interfață grafică (UI) minimalistă, cu butoane mari și feedback haptic, adaptată pentru pacienții cu deficite motorii fine.
+Limitarea principala a utilizarii unui asemenea dispozitiv comercial este amplasarea senzorilor
+intr-un singur punct: pe încheietura mâinii, 
+ceea ce permite monitorizarea numai a exercitiilor ample, ce implica mișcări ale întregului membru superior,
 
-\section{Componenta Software: Arhitectura aplicației Wear OS și Mobile}
+\section{Software: Arhitectura aplicației Wear OS și Mobile}
 \hspace{0.75cm}Ecosistemul software este construit pe platforma Android, utilizând limbajul Kotlin și paradigma \textit{Modern Android Development} (MAD).
 
 Aplicația Wear OS:
-Rulează independent în timpul exercițiilor pentru a asigura o latență minimă. Nu depinde de conexiunea la telefon pentru colectarea datelor, stocând temporar sesiunea în memoria internă (buffer). Rolul său este de "Data Collector" și "Feedback Agent" (vibrează la erori de execuție).
+Rulează independent în timpul exercițiilor pentru a asigura o latență minimă. 
+Nu depinde de conexiunea la telefon pentru colectarea datelor, stocând temporar sesiunea în memoria internă 
+(buffer). Rolul său este de a colecta date și de a ghida utilozatorul, oferind feedback haptic în timpul exercițiilor.
 
 Aplicația Mobile:
-Funcționează ca un "Data Hub". Arhitectura respectă principiile \textit{Clean Architecture} (separarea responsabilităților în straturi: UI, Domain, Data), asigurând scalabilitate și testabilitate.
-Aplicația mobilă primește pachetele de date brute de la ceas prin protocolul Bluetooth (utilizând \textit{Wearable Data Layer API}), le procesează preliminar și le afișează pe grafice intuitive pentru pacient.
+Funcționează ca un gateway. Arhitectura respectă principiile \textit{Clean Architecture} 
+(separarea responsabilităților în straturi: UI, Domain, Data), asigurând decuplaj maxim.
+Aplicația mobilă primește pachetele de date brute de la ceas prin 
+Bluetooth (utilizând \textit{Wearable Data Layer API}).
 
 \section{Arhitectura Cloud și fluxul de date - GCP}
-\hspace{0.75cm}Backend-ul soluției este de tip \textit{Serverless}, construit pe infrastructura Google Cloud Platform (GCP) prin suita Firebase. 
-Această abordare elimină necesitatea întreținerii serverelor fizice și asigură o scalare automată.
+\hspace{0.75cm}Backend-ul soluției este de tip \textit{Serverless}, construit pe infrastructura 
+Google Cloud Platform (GCP) prin suita Firebase si bigQuery. \\ 
 
 Componentele principale sunt:
 \begin{itemize}
     \item Firebase Authentication: Gestionează identitatea utilizatorilor, asigurând accesul securizat.
     \item Firestore noSQL: stocheaza datele pacientilor, de la profil la sesiuni de reabilitare (durată, tip exercițiu, scoruri finale).
-    \item BigQuery: Pentru stocarea seriilor de timp masive (raw sensor data) se utilizează o arhitectură hibridă, 
-            unde datele detaliate sunt arhivate pentru analize ulterioare de tip Machine Learning.
+    \item BigQuery: stocheaza modelele de procesare a semnalelor si de machine learning. 
 \end{itemize}
+
+\hspace{0.75cm}Pentru stocarea datelor masive se utilizează o arhitectură hibridă, unde datele 
+detaliate sunt arhivate pentru analiză ulterioară, iar metadatele relevante sunt 
+indexate în Firestore pentru acces rapid.

@@ -14,6 +14,12 @@ fun SessionEntity.toDomain(): Session =
         endTime = this.endTime,
         receivedAt = this.receivedAt,
         dataPointCount = this.dataPointCount,
+        sparcScore = this.sparcScore,
+        ldljScore = this.ldljScore,
+        sparcResults = this.sparcResults,
+        ldljResults = this.ldljResults,
+        sparcPlotUrl = this.sparcPlotUrl,
+        ldljPlotUrl = this.ldljPlotUrl,
     )
 
 fun Session.toEntity(): SessionEntity =
@@ -25,6 +31,12 @@ fun Session.toEntity(): SessionEntity =
         endTime = this.endTime,
         receivedAt = this.receivedAt,
         dataPointCount = this.dataPointCount,
+        sparcScore = this.sparcScore,
+        ldljScore = this.ldljScore,
+        sparcResults = this.sparcResults,
+        ldljResults = this.ldljResults,
+        sparcPlotUrl = this.sparcPlotUrl,
+        ldljPlotUrl = this.ldljPlotUrl,
     )
 
 fun SessionTransferData.toSensorDataEntities(sessionId: Long): List<SensorDataEntity> =

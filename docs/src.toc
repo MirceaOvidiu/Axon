@@ -12,19 +12,18 @@
 \contentsline {section}{\numberline {3.3}Analiza comparativa a solutiilor vs. solutia propusa}{7}{}%
 \contentsline {chapter}{\numberline {4}Fundamentele teoretice ale analizei miscarii si markerilor biologici}{8}{}%
 \contentsline {section}{\numberline {4.1}Senzori inertiali (IMU): accelerometru si giroscop}{8}{}%
-\contentsline {subsection}{\numberline {4.1.1}Accelerometrul: Principiul de funcționare și ecuații}{8}{}%
-\contentsline {subsection}{\numberline {4.1.2}Giroscopul: Măsurarea vitezei unghiulare}{9}{}%
-\contentsline {subsection}{\numberline {4.1.3}Fuziunea Senzorială (Sensor Fusion)}{9}{}%
-\contentsline {section}{\numberline {4.2}Analiza fluiditatii: Algoritmul Spectral Arc Length - SPARC}{10}{}%
+\contentsline {subsection}{\numberline {4.1.1}Accelerometru: principiul de funcționare și ecuații}{8}{}%
+\contentsline {subsection}{\numberline {4.1.2}Giroscop: măsurarea vitezei unghiulare}{9}{}%
+\contentsline {subsection}{\numberline {4.1.3}Fuziunea senzorială: filtru complementar și algoritmul Madgwick}{9}{}%
+\contentsline {section}{\numberline {4.2}Analiza fluiditatii: Spectral Arc Length - SPARC}{10}{}%
 \contentsline {section}{\numberline {4.3}Analiza stabilitatii: Log Dimensionless Jerk - Acceleration - LDLJ-A}{11}{}%
-\contentsline {section}{\numberline {4.4}Recunoasterea tiparelor si corectitudinii: Dynamic Time Warping - DTW}{11}{}%
+\contentsline {section}{\numberline {4.4}Recunoasterea tiparelor: Dynamic Time Warping - DTW}{11}{}%
 \contentsline {section}{\numberline {4.5}Variabilitatea ritmului cardiac prin fotopletismografie}{12}{}%
-\contentsline {subsection}{\numberline {4.5.1}Fotopletismografia (PPG): Principiu de funcționare}{12}{}%
-\contentsline {subsection}{\numberline {4.5.2}Analiza HRV (Heart Rate Variability)}{12}{}%
+\contentsline {subsection}{\numberline {4.5.1}Analiza HRV (Heart Rate Variability)}{12}{}%
 \contentsline {chapter}{\numberline {5}Soluția propusă}{13}{}%
 \contentsline {section}{\numberline {5.1}Prezentarea generală a ecosistemului}{13}{}%
-\contentsline {section}{\numberline {5.2}Componenta Hardware: Specificații Google Pixel Watch 3 și limitări}{13}{}%
-\contentsline {section}{\numberline {5.3}Componenta Software: Arhitectura aplicației Wear OS și Mobile}{14}{}%
+\contentsline {section}{\numberline {5.2}Hardware: Google Pixel Watch 3 și limitări}{13}{}%
+\contentsline {section}{\numberline {5.3}Software: Arhitectura aplicației Wear OS și Mobile}{14}{}%
 \contentsline {section}{\numberline {5.4}Arhitectura Cloud și fluxul de date - GCP}{14}{}%
 \contentsline {chapter}{\numberline {6}Implementarea solutiei}{15}{}%
 \contentsline {section}{\numberline {6.1}Tehnologii și medii de dezvoltare utilizate}{15}{}%

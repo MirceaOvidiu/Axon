@@ -1,0 +1,16 @@
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - 'functions'
+  - 'deploy'
+  - 'process-ldlj'
+  - '--gen2'
+  - '--region=us-central1'
+  - '--runtime=python311'
+  - '--source=.'
+  - '--entry-point=process_ldlj'
+  - '--trigger-event-filters=type=google.cloud.firestore.document.v1.written'
+  - '--trigger-event-filters=database=(default)'
+  - '--trigger-event-filters-path-pattern=document=users/{uid}/sessions/{sessionId}'
+  - '--set-env-vars=STORAGE_BUCKET=axon-bucket'
+  - '--memory=512MiB'

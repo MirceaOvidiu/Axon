@@ -8,16 +8,16 @@ disponibilă astăzi în majoritatea ceasurilor inteligente comerciale.
 \section{Senzori inertiali (IMU): accelerometru si giroscop}
 
 \hspace{0.75cm}O unitate de măsură inerțială (IMU) este un dispozitiv electronic care măsoară și raportează forța specifică si viteza unghiulară, folosind o 
-combinație de accelerometre, giroscoape și, opțional, magnetometre. Aceste componente sunt realizate tehnologic sub formă de sisteme micro-electro-mecanice (MEMS), 
+combinație de accelerometre si giroscoape. Aceste componente sunt realizate tehnologic sub formă de sisteme micro-electro-mecanice (MEMS), 
 care permit integrarea pe cipuri de dimensiuni mici, 
-cu un consum energetic redus, ideal pentru dispozitivele purtabile \cite{woodman_2007}.
+cu un consum energetic redus, ideal pentru dispozitivele wearable. \cite{woodman_2007}.
 
-\subsection{Accelerometrul: Principiul de funcționare și ecuații}
-\hspace{0.75cm}Accelerometrul MEMS măsoară accelerația liniară a dispozitivului relativ la un sistem de referință inerțial. 
+\subsection{Accelerometru: principiul de funcționare și ecuații}
+\hspace{0.75cm}Accelerometrul măsoară accelerația liniară a dispozitivului relativ la un sistem de referință inerțial. 
 Principiul fizic de bază este legea a II-a a lui Newton ($F = ma$), implementată de obicei printr-un sistem masă-arc amortizat. 
 Atunci când senzorul este supus unei accelerații, masa de probă se deplasează, modificând capacitatea electrică dintre plăcile unui condensator microscopic.
 
-\hspace{0.75cm}Este fundamental de înțeles că un accelerometru nu măsoară accelerația coordonată (derivata a doua a poziției), ci \textit{accelerația proprie} (proper acceleration). 
+\hspace{0.75cm}Este fundamental de înțeles că un accelerometru nu măsoară accelerația coordonată (derivata a doua a poziției), ci \textit{accelerația proprie}. 
 Astfel, un accelerometru aflat în repaus pe suprafața Pământului va măsura o accelerație de $1g$ ($\approx 9.81 m/s^2$) orientată vertical în sus, 
 ca reacție la forța gravitațională. Ecuația vectorului măsurat $\mathbf{a}_{m}$ poate fi exprimată ca:
 \begin{equation}
@@ -31,12 +31,12 @@ unde:
     \item $\mathbf{n}_a$ este zgomotul de măsurare (white noise).
 \end{itemize}
 
-Deviația bias-ului în timp (drift) reprezintă o problemă majoră în sistemele de navigație inerțială (INS), deoarece integrarea dublă a erorii 
-pentru obținerea poziției duce la o creștere pătratică a erorii de poziție în timp ($error \propto t^2$) \cite{titterton_2004}. 
+Deviația bias-ului în timp (drift) reprezintă o problemă majoră în sistemele de navigație inerțială, deoarece integrarea dublă a erorii 
+pentru obținerea poziției duce la o creștere pătratică a erorii de poziție în timp. \cite{titterton_2004}. 
 Totuși, în analiza mișcării pentru reabilitare, accelerometrul este excelent pentru estimarea înclinației statice (folosind proiecția vectorului $\mathbf{g}$) 
 și pentru detectarea impacturilor sau a intensității mișcării.
 
-\subsection{Giroscopul: Măsurarea vitezei unghiulare}
+\subsection{Giroscop: măsurarea vitezei unghiulare}
 \hspace{0.75cm}Giroscopul măsoară viteza unghiulară ($\boldsymbol{\omega}$) în jurul axelor proprii ale senzorului (roll, pitch, yaw). 
 Spre deosebire de giroscoapele mecanice clasice bazate pe conservarea momentului cinetic al unei roți, giroscoapele MEMS utilizează forța Coriolis 
 asupra unei structuri vibrante.
@@ -48,7 +48,7 @@ asupra unei structuri vibrante.
 Integrarea vitezei unghiulare pentru a obține orientarea unghiulară ($\theta(t) = \int \omega(t) dt$) introduce, de asemenea, o eroare cumulativă (drift) 
 care crește liniar cu timpul. Deși giroscoapele sunt imune la accelerațiile liniare, ele pot fi sensibile la bias-ul de temperatură.
 
-\subsection{Fuziunea Senzorială (Sensor Fusion)}
+\subsection{Fuziunea senzorială: filtru complementar și algoritmul Madgwick}
 \hspace{0.75cm}Limitările individuale ale senzorilor impun utilizarea algoritmilor de fuziune senzorială pentru a obține o estimare robustă a orientării dispozitivului. 
 \begin{itemize}
     \item Accelerometrul este precis pe termen lung pentru determinarea orientării față de gravitație (“jos”), dar este zgomotos la frecvențe înalte și afectat de mișcările bruște.
@@ -63,7 +63,7 @@ sau a algoritmului Madgwick \cite{madgwick_2011}, care combină cele două surse
 unde $\alpha$ este un factor de pondere (uzual aproape de 1, ex: 0.98), permițând semnalului giroscopului să dicteze schimbările rapide, 
 în timp ce accelerometrul corectează lent deriva giroscopului.
 
-\section{Analiza fluiditatii: Algoritmul Spectral Arc Length - SPARC}
+\section{Analiza fluiditatii: Spectral Arc Length - SPARC}
 \hspace{0.75cm}Fluiditatea mișcării (smoothness) este un biomarker esențial în recuperarea motorie, reflectând capacitatea sistemului nervos central de a controla coordonat mușchii efectori. La pacienții post-AVC, mișcările sunt adesea sacadate, fragmentate și ezitante.
 
 Majoritatea metricilor clasice de fluiditate (precum numărul de vârfuri de viteză) sunt sensibile la durata și amplitudinea mișcării, ceea ce face dificilă comparația între pacienți diferiți sau între stadii diferite de recuperare. Pentru a elimina aceste dependențe, Balasubramanian et al. au propus metrica \textit{Spectral Arc Length} (SPARC) \cite{balasubramanian_2015}.
@@ -95,7 +95,7 @@ LDLJ = -\ln \left( \frac{T^3}{v_{peak}^2} \int_{0}^{T} |J(t)|^2 dt \right)
 
 Scorul este logaritmat pentru a reduce asimetria distribuției valorilor. Un scor LDLJ mai mare (mai puțin negativ, apropiat de zero) indică o mișcare mai controlată și mai stabilă. În sistemul nostru, unde calculul derivatei a treia din date discrete zgomotoase poate amplifica erorile, se aplică o filtrare prealabilă Butterworth low-pass de ordin 4 cu $f_c = 5-10 \text{Hz}$.
 
-\section{Recunoasterea tiparelor si corectitudinii: Dynamic Time Warping - DTW}
+\section{Recunoasterea tiparelor: Dynamic Time Warping - DTW}
 \hspace{0.75cm}Compararea unei mișcări efectuate de pacient cu o mișcare de referință ("gold standard" executată de terapeut) este dificilă folosind distanța Euclidiană standard, deoarece durata execuției variază inevitabil.
 \textit{Dynamic Time Warping} (DTW) este un algoritm de programare dinamică care permite alinierea non-liniară a două serii de timp pentru a găsi similaritatea maximă, independent de variațiile de viteză \cite{sakoe_chiba_1978}.
 
@@ -115,7 +115,6 @@ Această metrică este utilizată în sistem pentru a oferi un scor procentual d
 \hspace{0.75cm}Monitorizarea efortului fiziologic și a stresului este esențială pentru a preveni surmenajul în terapia post-AVC. 
 Deoarece accesul la un electrocardiograf (EKG) de precizie este limitat în mediul ambulatoriu (acasă), dispozitivele purtabile moderne utilizează tehnologia optică a fotopletismografiei (PPG).
 
-\subsection{Fotopletismografia (PPG): Principiu de funcționare}
 \hspace{0.75cm}Senzorul PPG utilizează o sursă de lumină (LED-uri verzi și infraroșii) și un fotodetector.
 Principiul se bazează pe absorbția diferențială a luminii de către hemoglobina din sânge. 
 Când inima pompează sânge (sistolă), volumul de sânge din capilarele de la încheietura mâinii crește, absorbind mai multă lumină verde. 
@@ -134,4 +133,5 @@ RMSSD = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N-1} (RR_{i+1} - RR_i)^2}
 \end{equation}
 
 Această metrică este utilizată în sistem pentru a calcula un "Scor de Recuperare" (Readiness Score) zilnic. \cite{shaffer_ginsberg_2017}. 
-Dacă scorul este scăzut sub baseline-ul personal al pacientului, aplicația va recomanda automat reducerea intensității exercițiilor pentru acea zi, prevenind riscul de recidivă.
+Dacă scorul este scăzut sub baseline-ul personal al pacientului, aplicația va recomanda automat reducerea intensității exercițiilor 
+pentru acea zi.
