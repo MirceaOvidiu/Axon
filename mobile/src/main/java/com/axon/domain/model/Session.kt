@@ -10,4 +10,10 @@ data class Session(
     val endTime: Long,
     val receivedAt: Long = System.currentTimeMillis(),
     val dataPointCount: Int = 0,
+    val sparcScore: Double? = null,
+    val ldljScore: Double? = null,
+    val sparcResults: List<SessionRepResult>? = null,
+    val ldljResults: List<SessionRepResult>? = null,
+    val sparcPlotUrl: String? = null,
+    val ldljPlotUrl: String? = null,
 )

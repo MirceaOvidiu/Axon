@@ -8,6 +8,7 @@ import com.axon.domain.model.Session
 import com.axon.domain.model.SessionStats
 import com.axon.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,13 @@ class SessionViewModel
         companion object {
             private const val TAG = "SessionViewModel"
         }
+
+        // This will hold the session with the latest updates from the cloud
+        private val _cloudSession = MutableStateFlow<Session?>(null)
+        val cloudSession: StateFlow<Session?> = _cloudSession.asStateFlow()
+
+        private val _isPolling = MutableStateFlow(false)
+        val isPolling: StateFlow<Boolean> = _isPolling.asStateFlow()
 
         init {
             // Sync cloud sessions when the view model is created
@@ -63,15 +71,61 @@ class SessionViewModel
         fun loadSessionDetails(sessionId: Long) {
             viewModelScope.launch {
                 _isLoading.value = true
+                _isPolling.value = false // Reset polling state
+                _cloudSession.value = null // Reset cloud session state
                 try {
-                    _selectedSession.value = sessionRepository.getSession(sessionId)
+                    // First, load and display whatever data is available locally
+                    val localSession = sessionRepository.getSession(sessionId)
+                    _selectedSession.value = localSession
                     _selectedSessionData.value = sessionRepository.getSensorDataBySession(sessionId)
                     _selectedSessionStats.value = sessionRepository.getSessionStats(sessionId)
-                    Log.d(TAG, "Loaded session $sessionId with ${_selectedSessionData.value.size} data points")
+                    Log.d(TAG, "Loaded initial session details for $sessionId")
+
+                    // If the local session already has scores, update the cloud session state
+                    if (localSession?.sparcScore != null) {
+                        _cloudSession.value = localSession
+                    } else {
+                        // Otherwise, start polling for cloud scores in a non-blocking way
+                        pollForAnalysisScores(sessionId)
+                    }
+
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to load session details", e)
                 } finally {
                     _isLoading.value = false
+                }
+            }
+        }
+
+        private fun pollForAnalysisScores(sessionId: Long) {
+            viewModelScope.launch {
+                _isPolling.value = true
+                try {
+                    // Initial sync before polling
+                    sessionRepository.syncSessionsFromCloud()
+                    var updatedSession = sessionRepository.getSession(sessionId)
+                    if (updatedSession?.sparcScore != null) {
+                        _cloudSession.value = updatedSession
+                        Log.d(TAG, "Scores found after initial sync.")
+                        return@launch
+                    }
+
+                    // Polling loop
+                    for (i in 1..10) { // Poll for 20 seconds max
+                        delay(2000) // 2-second delay
+                        sessionRepository.syncSessionsFromCloud()
+                        updatedSession = sessionRepository.getSession(sessionId)
+                        if (updatedSession?.sparcScore != null) {
+                            _cloudSession.value = updatedSession
+                            Log.d(TAG, "Scores updated after polling.")
+                            return@launch
+                        }
+                    }
+                    Log.d(TAG, "Polling finished, scores not found.")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error while polling for scores", e)
+                } finally {
+                    _isPolling.value = false
                 }
             }
         }
@@ -91,5 +145,7 @@ class SessionViewModel
             _selectedSession.value = null
             _selectedSessionData.value = emptyList()
             _selectedSessionStats.value = null
+            _cloudSession.value = null
+            _isPolling.value = false
         }
     }

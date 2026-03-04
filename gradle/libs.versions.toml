@@ -39,6 +39,7 @@ room = "2.8.4"
 gson = "2.13.2"
 roomCommonJvm = "2.8.4"
 material3 = "1.4.0"
+coil = "2.7.0"
 
 # Firebase versions (matching BOM 33.7.0)
 firebaseAuthKtx = "23.2.1"
@@ -95,7 +96,8 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 # Firebase - using explicit versions (matching BOM 33.7.0)
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }

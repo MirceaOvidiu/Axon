@@ -27,8 +27,8 @@ service cloud.firestore {
         allow update, delete: if isOwner(userId);
 
         // Sensor data subcollection - nested under each session
-        // Path: users/{userId}/sessions/{sessionId}/sensorData/{dataId}
-        match /sensorData/{dataId} {
+        // Path: users/{userId}/sessions/{sessionId}/sensor_data/{dataId}
+        match /sensor_data/{dataId} {
           allow read: if isOwner(userId);
           allow create: if isOwner(userId);
           allow update, delete: if isOwner(userId);

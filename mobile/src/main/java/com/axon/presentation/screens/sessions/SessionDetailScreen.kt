@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,8 +42,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.axon.R
 import com.axon.domain.model.SensorData
+import com.axon.domain.model.Session
+
 import com.axon.domain.model.SessionStats
 import com.axon.presentation.screens.dashboard.backgroundDark
 import com.axon.presentation.screens.dashboard.cardDark
@@ -62,6 +66,8 @@ fun SessionDetailScreen(
     onNavigateBack: () -> Unit,
 ) {
     val session by viewModel.selectedSession.collectAsState()
+    val cloudSession by viewModel.cloudSession.collectAsState()
+    val isPolling by viewModel.isPolling.collectAsState()
     val sensorData by viewModel.selectedSessionData.collectAsState()
     val stats by viewModel.selectedSessionStats.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -146,6 +152,12 @@ fun SessionDetailScreen(
                         StatsCard(stats = sessionStats)
                     }
 
+                    // Cloud Analysis Card
+                    AnalysisCard(
+                        session = cloudSession,
+                        isPolling = isPolling
+                    )
+
                     // Heart rate chart
                     if (sensorData.isNotEmpty()) {
                         ChartCard(
@@ -157,13 +169,69 @@ fun SessionDetailScreen(
 
                         // Gyroscope chart
                         GyroscopeChartCard(sensorData = sensorData)
-
-                        // Raw data table
-                        RawDataTableCard(sensorData = sensorData)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun AnalysisCard(session: Session?, isPolling: Boolean) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = cardDark),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Text(
+                text = "Cloud Analysis",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+
+            if (session != null) {
+                // Display scores if session is not null
+                MovementQualityCard(
+                    sparcScore = session.sparcScore,
+                    ldljScore = session.ldljScore,
+                    sparcResults = session.sparcResults,
+                    ldljResults = session.ldljResults,
+                    sparcPlotUrl = session.sparcPlotUrl,
+                    ldljPlotUrl = session.ldljPlotUrl
+                )
+            } else if (isPolling) {
+                // Show loading indicator if polling
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = primaryColor,
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        text = "Analyzing in cloud...",
+                        color = textMutedDark,
+                        fontSize = 14.sp
+                    )
+                }
+            } else {
+                // Show message if scores are not available and not polling
+                Text(
+                    text = "Analysis data not yet available. It will appear here once processed.",
+                    color = textMutedDark,
+                    fontSize = 14.sp
+                )
             }
         }
     }
@@ -538,10 +606,16 @@ fun LegendItem(
 }
 
 
-@Composable
-fun RawDataTableCard(sensorData: List<SensorData>) {
-    val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
 
+@Composable
+fun MovementQualityCard(
+    sparcScore: Double?,
+    ldljScore: Double?,
+    sparcResults: List<com.axon.domain.model.SessionRepResult>?,
+    ldljResults: List<com.axon.domain.model.SessionRepResult>?,
+    sparcPlotUrl: String?,
+    ldljPlotUrl: String?
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -554,103 +628,108 @@ fun RawDataTableCard(sensorData: List<SensorData>) {
                     .padding(16.dp),
         ) {
             Text(
-                text = "Raw Sensor Data (${sensorData.size} readings)",
+                text = "Movement Quality",
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp),
             )
 
-            // Table header
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Color(0xFF2A2A2A),
-                            RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                        ).padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                TableHeaderCell(text = "Time", modifier = Modifier.weight(1.2f))
-                TableHeaderCell(text = "HR", modifier = Modifier.weight(0.7f))
-                TableHeaderCell(text = "Gyro X", modifier = Modifier.weight(1f))
-                TableHeaderCell(text = "Gyro Y", modifier = Modifier.weight(1f))
-                TableHeaderCell(text = "Gyro Z", modifier = Modifier.weight(1f))
-            }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            val displayData = sensorData.takeLast(15)
-            displayData.forEachIndexed { index, data ->
-                val bgColor = if (index % 2 == 0) Color(0xFF1E1E1E) else Color(0xFF252525)
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(bgColor)
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    TableCell(
-                        text = timeFormat.format(Date(data.timestamp)),
-                        modifier = Modifier.weight(1.2f),
+            // Overall Scores
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                if (sparcScore != null) {
+                    StatItem(
+                        label = "Overall SPARC",
+                        value = "%.2f".format(sparcScore),
+                        unit = "",
+                        color = Color(0xFF4CAF50),
                     )
-                    TableCell(
-                        text = data.heartRate?.let { "%.0f".format(it) } ?: "--",
-                        modifier = Modifier.weight(0.7f),
-                        color = if (data.heartRate != null) Color(0xFFFF6B6B) else textMutedDark,
-                    )
-                    TableCell(
-                        text = data.gyroX?.let { "%.2f".format(it) } ?: "--",
-                        modifier = Modifier.weight(1f),
-                    )
-                    TableCell(
-                        text = data.gyroY?.let { "%.2f".format(it) } ?: "--",
-                        modifier = Modifier.weight(1f),
-                    )
-                    TableCell(
-                        text = data.gyroZ?.let { "%.2f".format(it) } ?: "--",
-                        modifier = Modifier.weight(1f),
+                }
+                if (ldljScore != null) {
+                    StatItem(
+                        label = "Overall LDLJ-A",
+                        value = "%.2f".format(ldljScore),
+                        unit = "",
+                        color = Color(0xFFFF9800),
                     )
                 }
             }
 
-            if (sensorData.size > 15) {
-                Text(
-                    text = "Showing last 15 of ${sensorData.size} readings",
-                    color = textMutedDark,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 8.dp),
+            // Plots
+            if (sparcPlotUrl != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("SPARC Analysis", color = textMutedDark, fontSize = 12.sp)
+                AsyncImage(
+                    model = sparcPlotUrl,
+                    contentDescription = "SPARC Analysis Plot",
+                    modifier = Modifier.fillMaxWidth().height(200.dp).background(Color.White)
                 )
+            }
+            
+            if (ldljPlotUrl != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("LDLJ-A Analysis", color = textMutedDark, fontSize = 12.sp)
+                AsyncImage(
+                    model = ldljPlotUrl,
+                    contentDescription = "LDLJ Analysis Plot",
+                    modifier = Modifier.fillMaxWidth().height(200.dp).background(Color.White)
+                )
+            }
+
+            // Tables
+            if (!sparcResults.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                RepetitionTable(title = "SPARC (per Rep)", results = sparcResults)
+            }
+
+            if (!ldljResults.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                RepetitionTable(title = "LDLJ-A (per Rep)", results = ldljResults)
             }
         }
     }
 }
 
 @Composable
-private fun TableHeaderCell(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = text,
-        color = Color.White,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = modifier,
-    )
+fun RepetitionTable(title: String, results: List<com.axon.domain.model.SessionRepResult>) {
+    Column {
+        Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Row(Modifier.fillMaxWidth()) {
+            AnalysisTableCell(text = "Rep", weight = 0.2f, header = true)
+            AnalysisTableCell(text = "Dur (s)", weight = 0.4f, header = true)
+            AnalysisTableCell(text = "Score", weight = 0.4f, header = true)
+        }
+        
+        results.forEach { res ->
+            Row(Modifier.fillMaxWidth()) {
+                AnalysisTableCell(text = res.rep.toString(), weight = 0.2f)
+                AnalysisTableCell(text = "%.2f".format(res.duration), weight = 0.4f)
+                AnalysisTableCell(text = "%.4f".format(res.score), weight = 0.4f)
+            }
+        }
+    }
 }
 
 @Composable
-private fun TableCell(
+fun RowScope.AnalysisTableCell(
     text: String,
-    modifier: Modifier = Modifier,
-    color: Color = Color.White,
+    weight: Float,
+    header: Boolean = false
 ) {
     Text(
         text = text,
-        color = color,
-        fontSize = 10.sp,
-        modifier = modifier,
+        modifier = Modifier
+            .weight(weight)
+            .padding(4.dp),
+        color = if (header) textMutedDark else Color.White,
+        fontSize = 12.sp,
+        fontWeight = if (header) FontWeight.Bold else FontWeight.Normal
     )
 }
 

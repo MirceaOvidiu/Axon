@@ -4,15 +4,21 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.axon.data.local.dao.SessionDao
+import com.axon.data.local.entity.Converters
 import com.axon.data.local.entity.SensorDataEntity
 import com.axon.data.local.entity.SessionEntity
 
 @Database(
-    entities = [SensorDataEntity::class, SessionEntity::class],
-    version = 7,
+    entities = [
+        SessionEntity::class,
+        SensorDataEntity::class,
+    ],
+    version = 2,
     exportSchema = false,
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 

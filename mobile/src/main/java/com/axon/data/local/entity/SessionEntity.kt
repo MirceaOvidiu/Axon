@@ -18,4 +18,10 @@ data class SessionEntity(
     var endTime: Long = 0,
     val receivedAt: Long = System.currentTimeMillis(),
     val dataPointCount: Int = 0,
+    val sparcScore: Double? = null,
+    val ldljScore: Double? = null,
+    val sparcResults: List<com.axon.domain.model.SessionRepResult>? = null,
+    val ldljResults: List<com.axon.domain.model.SessionRepResult>? = null,
+    val sparcPlotUrl: String? = null,
+    val ldljPlotUrl: String? = null,
 )

@@ -31,7 +31,7 @@ class SessionRepositoryImplementation
             private const val TAG = "SessionRepository"
             private const val USERS_COLLECTION = "users"
             private const val SESSIONS_COLLECTION = "sessions"
-            private const val SENSOR_DATA_COLLECTION = "sensorData"
+            private const val SENSOR_DATA_COLLECTION = "sensor_data"
         }
 
         private val currentUserId: String?
@@ -136,8 +136,28 @@ class SessionRepositoryImplementation
                     val sessionFirestore = doc.toObject(SessionFirestore::class.java) ?: continue
                     val firestoreId = doc.id
 
-                    // Skip if we already have this session locally
-                    if (sessionDao.getSessionByFirestoreId(firestoreId) != null) continue
+                    // Check if we already have this session
+                    val existingSession = sessionDao.getSessionByFirestoreId(firestoreId)
+                    if (existingSession != null) {
+                        // If we have it, check if we need to update scores or results from cloud processing
+                        if ((existingSession.sparcScore == null && sessionFirestore.sparcScore != null) ||
+                            (existingSession.ldljScore == null && sessionFirestore.ldljScore != null) ||
+                            (existingSession.sparcResults.isNullOrEmpty() && !sessionFirestore.sparc_results.isNullOrEmpty()) ||
+                            (existingSession.ldljResults.isNullOrEmpty() && !sessionFirestore.ldlj_results.isNullOrEmpty())) {
+
+                            val updatedSession = existingSession.copy(
+                                sparcScore = sessionFirestore.sparcScore,
+                                ldljScore = sessionFirestore.ldljScore,
+                                sparcResults = convertMapToResults(sessionFirestore.sparc_results),
+                                ldljResults = convertMapToResults(sessionFirestore.ldlj_results),
+                                sparcPlotUrl = sessionFirestore.sparc_plot_url,
+                                ldljPlotUrl = sessionFirestore.ldlj_plot_url,
+                            )
+                            sessionDao.insertSession(updatedSession)
+                            Log.d(TAG, "Updated scores and results for session $firestoreId")
+                        }
+                        continue
+                    }
 
                     // Insert session locally (id = 0 lets Room auto-generate)
                     val session = Session(
@@ -148,6 +168,12 @@ class SessionRepositoryImplementation
                         endTime = sessionFirestore.endTime,
                         receivedAt = sessionFirestore.receivedAt,
                         dataPointCount = sessionFirestore.dataPointCount,
+                        sparcScore = sessionFirestore.sparcScore,
+                        ldljScore = sessionFirestore.ldljScore,
+                        sparcResults = convertMapToResults(sessionFirestore.sparc_results),
+                        ldljResults = convertMapToResults(sessionFirestore.ldlj_results),
+                        sparcPlotUrl = sessionFirestore.sparc_plot_url,
+                        ldljPlotUrl = sessionFirestore.ldlj_plot_url,
                     )
                     val localId = sessionDao.insertSession(session.toEntity())
 
@@ -305,5 +331,17 @@ class SessionRepositoryImplementation
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to delete session from Firestore: ${e.message}", e)
             }
+        }
+        
+        private fun convertMapToResults(list: List<Map<String, Any>>?): List<com.axon.domain.model.SessionRepResult> {
+            return list?.map { map ->
+                com.axon.domain.model.SessionRepResult(
+                    rep = (map["rep"] as? Number)?.toInt() ?: 0,
+                    startIdx = (map["start_idx"] as? Number)?.toInt() ?: 0,
+                    endIdx = (map["end_idx"] as? Number)?.toInt() ?: 0,
+                    duration = (map["duration"] as? Number)?.toDouble() ?: 0.0,
+                    score = (map["score"] as? Number)?.toDouble() ?: 0.0
+                )
+            } ?: emptyList()
         }
     }

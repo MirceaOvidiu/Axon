@@ -104,6 +104,11 @@ class CloudSessionRepositoryImplementation @Inject constructor(
                 batchWrite.commit().await()
                 _uploadProgress.value = 0.2f + 0.8f * (index + 1) / batches.size
             }
+            
+            // Mark session as fully uploaded so cloud functions can process it
+            sessionDocRef(uid, session.firestoreId)
+                .update("status", "upload_completed")
+                .await()
 
             _uploadProgress.value = 1f
             Log.d(TAG, "Uploaded session ${session.id} — ${sensorData.size} readings")
