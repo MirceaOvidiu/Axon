@@ -152,12 +152,6 @@ fun SessionDetailScreen(
                         StatsCard(stats = sessionStats)
                     }
 
-                    // Cloud Analysis Card
-                    AnalysisCard(
-                        session = cloudSession,
-                        isPolling = isPolling
-                    )
-
                     // Heart rate chart
                     if (sensorData.isNotEmpty()) {
                         ChartCard(
@@ -170,6 +164,12 @@ fun SessionDetailScreen(
                         // Gyroscope chart
                         GyroscopeChartCard(sensorData = sensorData)
                     }
+
+                    // Cloud Analysis Card
+                    AnalysisCard(
+                        session = cloudSession,
+                        isPolling = isPolling
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -198,18 +198,8 @@ fun AnalysisCard(session: Session?, isPolling: Boolean) {
                 modifier = Modifier.padding(bottom = 12.dp),
             )
 
-            if (session != null) {
-                // Display scores if session is not null
-                MovementQualityCard(
-                    sparcScore = session.sparcScore,
-                    ldljScore = session.ldljScore,
-                    sparcResults = session.sparcResults,
-                    ldljResults = session.ldljResults,
-                    sparcPlotUrl = session.sparcPlotUrl,
-                    ldljPlotUrl = session.ldljPlotUrl
-                )
-            } else if (isPolling) {
-                // Show loading indicator if polling
+            if (isPolling && session == null) {
+                // Show loading indicator if polling and no session data yet
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -225,8 +215,18 @@ fun AnalysisCard(session: Session?, isPolling: Boolean) {
                         fontSize = 14.sp
                     )
                 }
+            } else if (session?.sparcScore != null || session?.ldljScore != null) {
+                // Display scores if available
+                MovementQualityCard(
+                    sparcScore = session.sparcScore,
+                    ldljScore = session.ldljScore,
+                    sparcResults = session.sparcResults,
+                    ldljResults = session.ldljResults,
+                    sparcPlotUrl = session.sparcPlotUrl,
+                    ldljPlotUrl = session.ldljPlotUrl
+                )
             } else {
-                // Show message if scores are not available and not polling
+                // Show message if scores are not available
                 Text(
                     text = "Analysis data not yet available. It will appear here once processed.",
                     color = textMutedDark,

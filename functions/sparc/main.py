@@ -7,6 +7,8 @@ from scipy.signal import find_peaks, butter, filtfilt
 from google.cloud import firestore
 from google.cloud import storage
 import firebase_admin
+import functions_framework
+from cloudevents.http import CloudEvent
 
 # --- Firestore & Storage Utils ---
 
@@ -18,9 +20,9 @@ db = firestore.Client()
 storage_client = storage.Client()
 bucket_name = os.environ.get('STORAGE_BUCKET', 'axon-bucket') 
 
-def get_session_data(uid, session_id):
+def get_session_data(user_id, session_id):
     """Fetches session document and sensor data subcollection."""
-    doc_ref = db.collection('users').document(uid).collection('sessions').document(session_id)
+    doc_ref = db.collection('users').document(user_id).collection('sessions').document(session_id)
     doc = doc_ref.get()
 
     if not doc.exists:
@@ -158,7 +160,7 @@ def process_sparc_logic(speed, fs):
     print(f"SPARC: Found {len(segments)} segments")
 
     if not segments:
-        return [], None
+        return [], speed_smooth, []
 
     results = []
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -188,33 +190,83 @@ def process_sparc_logic(speed, fs):
     
     return results, fig
 
-def process_sparc(event, context):
-    """Cloud Function entry point."""
-    path_parts = context.resource.split('/documents/')[1].split('/')
-    uid, session_id = path_parts[1], path_parts[3]
+@functions_framework.cloud_event
+def process_sparc(cloud_event: CloudEvent) -> None:
+    """
+    Triggers on Firestore document update in 'sessions' collection.
+    Processes sensor data to calculate SPARC and saves results.
+    """
+    try:
+        firestore_payload = cloud_event.data.get("value", {})
+        if not firestore_payload:
+            print("No data in Firestore event.")
+            return
 
-    doc_ref, data, sensor_arrays = get_session_data(uid, session_id)
-    if not doc_ref: return
+        # Check if the update is relevant for processing
+        old_value = cloud_event.data.get("oldValue", {})
+        old_fields = old_value.get("fields", {})
+        new_fields = firestore_payload.get("fields", {})
 
-    if data.get('sparc_results'):
-        print(f"SPARC: Already processed for {session_id}.")
-        return
+        old_status = old_fields.get("status", {}).get("stringValue")
+        new_status = new_fields.get("status", {}).get("stringValue")
+        
+        # Only process if status changes to 'completed'
+        if not (new_status == 'completed' and old_status != 'completed'):
+            print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
+            return
 
-    t, gx, gy, gz = sensor_arrays
-    speed, fs = prepare_signal(t, gx, gy, gz)
-    
-    results, fig = process_sparc_logic(speed, fs)
+        # Extract user and session IDs from the document path
+        path_parts = firestore_payload.get("name", "").split("/")
+        if len(path_parts) < 6:
+            print(f"Invalid document path: {firestore_payload.get('name')}")
+            return
+            
+        user_id = path_parts[-3]
+        session_id = path_parts[-1]
 
-    if fig:
-        plot_url = upload_plot(fig, f"{session_id}_sparc.png")
-        update_data = {'sparc_plot_url': plot_url}
-    else:
-        update_data = {}
+        print(f"Processing SPARC for user: {user_id}, session: {session_id}")
 
-    update_data.update({
-        'sparc_results': results,
-        'sparc_processed_at': firestore.SERVER_TIMESTAMP
-    })
-    doc_ref.update(update_data)
-    
-    print(f"SPARC: Successfully completed for {session_id}")
+        # Initialize Firestore and Storage clients
+        db = firestore.Client()
+        storage_client = storage.Client()
+        bucket_name = os.environ.get('STORAGE_BUCKET', 'axon-bucket') 
+
+        doc_ref, data, sensor_arrays = get_session_data(user_id, session_id)
+        if not doc_ref: return
+
+        if data.get('sparc_results'):
+            print(f"SPARC: Already processed for {session_id}.")
+            return
+
+        t, gx, gy, gz = sensor_arrays
+        speed, fs = prepare_signal(t, gx, gy, gz)
+        
+        results, fig = process_sparc_logic(speed, fs)
+
+        if fig:
+            plot_url = upload_plot(fig, f"{session_id}_sparc.png")
+            update_data = {'sparc_plot_url': plot_url}
+        else:
+            update_data = {}
+
+        update_data.update({
+            'sparc_results': results,
+            'sparc_processed_at': firestore.SERVER_TIMESTAMP
+        })
+        doc_ref.update(update_data)
+        
+        print(f"Successfully processed SPARC for session: {session_id}")
+
+    except Exception as e:
+        print(f"Error processing SPARC: {e}")
+        # Optionally, update Firestore with error status
+        try:
+            path_parts = firestore_payload.get("name", "").split("/")
+            if len(path_parts) >= 6:
+                user_id = path_parts[-3]
+                session_id = path_parts[-1]
+                db = firestore.Client()
+                session_ref = db.collection("users", user_id, "sessions").document(session_id)
+                session_ref.update({"sparcProcessingError": str(e)})
+        except Exception as update_e:
+            print(f"Failed to update session with error status: {update_e}")

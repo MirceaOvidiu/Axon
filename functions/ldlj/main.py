@@ -152,7 +152,7 @@ def process_ldlj_logic(speed, fs):
     print(f"LDLJ: Found {len(segments)} segments")
 
     if not segments:
-        return [], None
+        return [], speed_smooth, []
 
     results = []
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -182,33 +182,83 @@ def process_ldlj_logic(speed, fs):
     
     return results, fig
 
-def process_ldlj(event, context):
-    """Cloud Function entry point."""
-    path_parts = context.resource.split('/documents/')[1].split('/')
-    uid, session_id = path_parts[1], path_parts[3]
+@functions_framework.cloud_event
+def process_ldlj(cloud_event: CloudEvent) -> None:
+    """
+    Triggers on Firestore document update in 'sessions' collection.
+    Processes sensor data to calculate LDLJ and saves results.
+    """
+    try:
+        firestore_payload = cloud_event.data.get("value", {})
+        if not firestore_payload:
+            print("No data in Firestore event.")
+            return
 
-    doc_ref, data, sensor_arrays = get_session_data(uid, session_id)
-    if not doc_ref: return
+        # Check if the update is relevant for processing
+        old_value = cloud_event.data.get("oldValue", {})
+        old_fields = old_value.get("fields", {})
+        new_fields = firestore_payload.get("fields", {})
 
-    if data.get('ldlj_results'):
-        print(f"LDLJ: Already processed for {session_id}.")
-        return
-
-    t, gx, gy, gz = sensor_arrays
-    speed, fs = prepare_signal(t, gx, gy, gz)
-    
-    results, fig = process_ldlj_logic(speed, fs)
-
-    if fig:
-        plot_url = upload_plot(fig, f"{session_id}_ldlj.png")
-        update_data = {'ldlj_plot_url': plot_url}
-    else:
-        update_data = {}
+        old_status = old_fields.get("status", {}).get("stringValue")
+        new_status = new_fields.get("status", {}).get("stringValue")
         
-    update_data.update({
-        'ldlj_results': results,
-        'ldlj_processed_at': firestore.SERVER_TIMESTAMP
-    })
-    doc_ref.update(update_data)
-    
-    print(f"LDLJ: Successfully completed for {session_id}")
+        # Only process if status changes to 'completed'
+        if not (new_status == 'completed' and old_status != 'completed'):
+            print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
+            return
+
+        # Extract user and session IDs from the document path
+        path_parts = firestore_payload.get("name", "").split("/")
+        if len(path_parts) < 6:
+            print(f"Invalid document path: {firestore_payload.get('name')}")
+            return
+            
+        user_id = path_parts[-3]
+        session_id = path_parts[-1]
+
+        print(f"Processing LDLJ for user: {user_id}, session: {session_id}")
+
+        # Initialize Firestore and Storage clients
+        db = firestore.Client()
+        storage_client = storage.Client()
+        bucket_name = os.environ.get('STORAGE_BUCKET', 'axon-bucket') 
+
+        doc_ref, data, sensor_arrays = get_session_data(user_id, session_id)
+        if not doc_ref: return
+
+        if data.get('ldlj_results'):
+            print(f"LDLJ: Already processed for {session_id}.")
+            return
+
+        t, gx, gy, gz = sensor_arrays
+        speed, fs = prepare_signal(t, gx, gy, gz)
+        
+        results, fig = process_ldlj_logic(speed, fs)
+
+        if fig:
+            plot_url = upload_plot(fig, f"{session_id}_ldlj.png")
+            update_data = {'ldlj_plot_url': plot_url}
+        else:
+            update_data = {}
+            
+        update_data.update({
+            'ldlj_results': results,
+            'ldlj_processed_at': firestore.SERVER_TIMESTAMP
+        })
+        doc_ref.update(update_data)
+        
+        print(f"Successfully processed LDLJ for session: {session_id}")
+
+    except Exception as e:
+        print(f"Error processing LDLJ: {e}")
+        # Optionally, update Firestore with error status
+        try:
+            path_parts = firestore_payload.get("name", "").split("/")
+            if len(path_parts) >= 6:
+                user_id = path_parts[-3]
+                session_id = path_parts[-1]
+                db = firestore.Client()
+                session_ref = db.collection("users", user_id, "sessions").document(session_id)
+                session_ref.update({"ldljProcessingError": str(e)})
+        except Exception as update_e:
+            print(f"Failed to update session with error status: {update_e}")
