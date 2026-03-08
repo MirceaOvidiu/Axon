@@ -185,36 +185,18 @@ def process_ldlj_logic(speed, fs):
 @functions_framework.cloud_event
 def process_ldlj(cloud_event: CloudEvent) -> None:
     """
-    Triggers on Firestore document update in 'sessions' collection.
+    Triggers on Firestore document creation in 'sensor_data' subcollection.
     Processes sensor data to calculate LDLJ and saves results.
     """
     try:
-        firestore_payload = cloud_event.data.get("value", {})
-        if not firestore_payload:
-            print("No data in Firestore event.")
-            return
-
-        # Check if the update is relevant for processing
-        old_value = cloud_event.data.get("oldValue", {})
-        old_fields = old_value.get("fields", {})
-        new_fields = firestore_payload.get("fields", {})
-
-        old_status = old_fields.get("status", {}).get("stringValue")
-        new_status = new_fields.get("status", {}).get("stringValue")
-        
-        # Only process if status changes to 'completed'
-        if not (new_status == 'completed' and old_status != 'completed'):
-            print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
-            return
-
         # Extract user and session IDs from the document path
-        path_parts = firestore_payload.get("name", "").split("/")
-        if len(path_parts) < 6:
-            print(f"Invalid document path: {firestore_payload.get('name')}")
+        path_parts = cloud_event.data["document"].split("/")
+        if len(path_parts) < 8:
+            print(f"Invalid document path: {cloud_event.data['document']}")
             return
             
-        user_id = path_parts[-3]
-        session_id = path_parts[-1]
+        user_id = path_parts[1]
+        session_id = path_parts[3]
 
         print(f"Processing LDLJ for user: {user_id}, session: {session_id}")
 
@@ -226,8 +208,10 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
         doc_ref, data, sensor_arrays = get_session_data(user_id, session_id)
         if not doc_ref: return
 
-        if data.get('ldlj_results'):
-            print(f"LDLJ: Already processed for {session_id}.")
+        # Check if the session is completed and not yet processed
+        if data.get('status') != 'completed' or data.get('ldlj_results'):
+            if data.get('ldlj_results'):
+                print(f"LDLJ: Already processed for {session_id}.")
             return
 
         t, gx, gy, gz = sensor_arrays
