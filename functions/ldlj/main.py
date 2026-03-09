@@ -245,8 +245,8 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
             print(f"Invalid key path: {key_path}")
             return
             
-        user_id = key_path[0].name_or_id
-        session_id = key_path[1].name_or_id
+        user_id = key_path[0].name
+        session_id = key_path[1].name
 
         print(f"Processing LDLJ for user: {user_id}, session: {session_id}")
 
@@ -288,8 +288,8 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
             if 'datastore_payload' in locals() and datastore_payload.value and datastore_payload.value.entity:
                 key_path = datastore_payload.value.entity.key.path
                 if len(key_path) >= 2:
-                    user_id = key_path[0].name_or_id
-                    session_id = key_path[1].name_or_id
+                    user_id = key_path[0].name
+                    session_id = key_path[1].name
                     session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
                     session_ref.update({"ldljProcessingError": str(e)})
         except Exception as update_e:
