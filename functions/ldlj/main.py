@@ -9,6 +9,8 @@ from google.cloud import storage
 import firebase_admin
 import functions_framework
 from cloudevents.http import CloudEvent
+from google.events.cloud import datastore
+from google.cloud.datastore.entity import Entity
 
 # --- Firestore & Storage Utils ---
 
@@ -217,18 +219,20 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
     Processes sensor data to calculate LDLJ and saves results only when status changes to 'completed'.
     """
     try:
-        firestore_payload = cloud_event.data.get("value", {})
-        if not firestore_payload:
-            print("No data in Firestore event.")
+        # The data is a protobuf message, so we need to parse it.
+        datastore_payload = datastore.EntityEventData()
+        datastore_payload._pb.ParseFromString(cloud_event.data)
+
+        if not datastore_payload.value:
+            print("No data in Datastore event.")
             return
 
-        # Check if importance update
-        old_value = cloud_event.data.get("oldValue", {})
-        old_fields = old_value.get("fields",     {})
-        new_fields = firestore_payload.get("fields", {})
+        # Check if it's an important update
+        old_value = datastore_payload.old_value
+        new_value = datastore_payload.value
 
-        old_status = old_fields.get("status", {}).get("stringValue")
-        new_status = new_fields.get("status", {}).get("stringValue")
+        old_status = old_value.properties.get("status", {}).string_value if old_value else None
+        new_status = new_value.properties.get("status", {}).string_value if new_value else None
         
         # Only process if status changes to 'upload_completed'
         if not (new_status == 'upload_completed' and old_status != 'upload_completed'):
@@ -236,13 +240,13 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
             return
 
         # Extract user and session IDs from the document path
-        path_parts = firestore_payload.get("name", "").split("/")
-        if len(path_parts) < 6:
-            print(f"Invalid document path: {firestore_payload.get('name')}")
+        key_path = new_value.key.path
+        if len(key_path) < 4:
+            print(f"Invalid key path: {key_path}")
             return
             
-        user_id = path_parts[-3]
-        session_id = path_parts[-1]
+        user_id = key_path[1].name_or_id
+        session_id = key_path[3].name_or_id
 
         print(f"Processing LDLJ for user: {user_id}, session: {session_id}")
 
@@ -281,12 +285,13 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
         print(f"Error processing LDLJ: {e}")
         # Optionally, update Firestore with error status
         try:
-            path_parts = firestore_payload.get("name", "").split("/") if 'firestore_payload' in locals() else []
-            if len(path_parts) >= 6:
-                user_id = path_parts[-3]
-                session_id = path_parts[-1]
-                session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
-                session_ref.update({"ldljProcessingError": str(e)})
+            if 'datastore_payload' in locals() and datastore_payload.value:
+                key_path = datastore_payload.value.key.path
+                if len(key_path) >= 4:
+                    user_id = key_path[1].name_or_id
+                    session_id = key_path[3].name_or_id
+                    session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
+                    session_ref.update({"ldljProcessingError": str(e)})
         except Exception as update_e:
             print(f"Failed to update session with error status: {update_e}")
 
