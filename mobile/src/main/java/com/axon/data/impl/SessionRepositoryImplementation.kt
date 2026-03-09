@@ -291,6 +291,15 @@ class SessionRepositoryImplementation
                     Log.d(TAG, "Uploaded sensor batch ${batchIndex + 1} (${chunk.size} points)")
                 }
 
+                // Update session status to "upload_completed" so Cloud Functions are triggered
+                firestore
+                    .collection(USERS_COLLECTION)
+                    .document(userId)
+                    .collection(SESSIONS_COLLECTION)
+                    .document(firestoreSessionId)
+                    .update("status", "upload_completed")
+                    .await()
+
                 Log.d(TAG, "All ${sensorDataList.size} sensor data points uploaded for $firestoreSessionId")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to upload sensor data: ${e.message}", e)

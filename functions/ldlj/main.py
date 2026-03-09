@@ -7,6 +7,10 @@ from scipy.signal import find_peaks, butter, filtfilt
 from google.cloud import firestore
 from google.cloud import storage
 import firebase_admin
+import functions_framework
+from cloudevents.http import CloudEvent
+from google.events.cloud import datastore
+from google.cloud.datastore.entity import Entity
 
 # --- Firestore & Storage Utils ---
 
@@ -130,18 +134,44 @@ def prepare_signal(t, gx, gy, gz):
     return speed, fs
 
 def calculate_ldlj_metric(speed, fs):
-    """Calculates the LDLJ (Log Dimensionless Jerk) metric for smoothness."""
-    # Jerk is the derivative of acceleration. Here we use speed's derivative.
-    dt = 1.0 / fs
-    jerk = np.diff(speed, 2) / (dt**2)
+    """
+    Calculate the Log Dimensionless Jerk (LDLJ) for a speed profile,
+    corrected for amplitude and duration (LDLJ-A).
+    """
+    if len(speed) < 3:
+        return -999.0
+        
+    # 1. Calculate Duration (D)
+    N = len(speed)
+    D = N / fs
     
-    # Dimensionless Jerk calculation
-    duration = len(speed) * dt
-    scale_factor = duration**3 / np.mean(speed)**2 if np.mean(speed) != 0 else duration**3
+    # 2. Calculate Peak Speed (A) for normalization
+    A = np.max(speed)
+    if A == 0: 
+        return -999.0
     
-    integral_jerk_squared = np.sum(jerk**2) * dt
+    # 3. Calculate Jerk
+    # Acceleration = 1st derivative of speed
+    accel = np.gradient(speed, 1.0/fs)
+    # Jerk = derivative of acceleration
+    jerk = np.gradient(accel, 1.0/fs)
     
-    ldlj = -np.log(scale_factor * integral_jerk_squared) if integral_jerk_squared > 0 else -np.inf
+    # 4. Integrate Squared Jerk
+    # Using trapezoidal rule for integration
+    if hasattr(np, 'trapezoid'):
+        integrated_squared_jerk = np.trapezoid(jerk**2, dx=1.0/fs)
+    else:
+        integrated_squared_jerk = np.trapz(jerk**2, dx=1.0/fs)
+    
+    # 5. Calculate Dimensionless Jerk (DJ)
+    dimensionless_jerk = integrated_squared_jerk * (D**3) / (A**2)
+    
+    # 6. Log Transform (LDLJ)
+    if dimensionless_jerk <= 0:
+        return -999.0
+        
+    ldlj = -np.log(dimensionless_jerk)
+    
     return ldlj
 
 # --- Main Logic ---
@@ -152,7 +182,7 @@ def process_ldlj_logic(speed, fs):
     print(f"LDLJ: Found {len(segments)} segments")
 
     if not segments:
-        return [], None
+        return [], speed_smooth, []
 
     results = []
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -182,33 +212,86 @@ def process_ldlj_logic(speed, fs):
     
     return results, fig
 
-def process_ldlj(event, context):
-    """Cloud Function entry point."""
-    path_parts = context.resource.split('/documents/')[1].split('/')
-    uid, session_id = path_parts[1], path_parts[3]
+@functions_framework.cloud_event
+def process_ldlj(cloud_event: CloudEvent) -> None:
+    """
+    Triggers on Firestore document update.
+    Processes sensor data to calculate LDLJ and saves results only when status changes to 'completed'.
+    """
+    try:
+        # The data is a protobuf message, so we need to parse it.
+        datastore_payload = datastore.EntityEventData()
+        datastore_payload._pb.ParseFromString(cloud_event.data)
 
-    doc_ref, data, sensor_arrays = get_session_data(uid, session_id)
-    if not doc_ref: return
+        if not datastore_payload.value:
+            print("No data in Datastore event.")
+            return
 
-    if data.get('ldlj_results'):
-        print(f"LDLJ: Already processed for {session_id}.")
-        return
+        # Check if it's an important update
+        old_value = datastore_payload.old_value
+        new_value = datastore_payload.value
 
-    t, gx, gy, gz = sensor_arrays
-    speed, fs = prepare_signal(t, gx, gy, gz)
-    
-    results, fig = process_ldlj_logic(speed, fs)
-
-    if fig:
-        plot_url = upload_plot(fig, f"{session_id}_ldlj.png")
-        update_data = {'ldlj_plot_url': plot_url}
-    else:
-        update_data = {}
+        old_status = old_value.properties.get("status", {}).string_value if old_value else None
+        new_status = new_value.properties.get("status", {}).string_value if new_value else None
         
-    update_data.update({
-        'ldlj_results': results,
-        'ldlj_processed_at': firestore.SERVER_TIMESTAMP
-    })
-    doc_ref.update(update_data)
-    
-    print(f"LDLJ: Successfully completed for {session_id}")
+        # Only process if status changes to 'upload_completed'
+        if not (new_status == 'upload_completed' and old_status != 'upload_completed'):
+            print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
+            return
+
+        # Extract user and session IDs from the document path
+        key_path = new_value.key.path
+        if len(key_path) < 4:
+            print(f"Invalid key path: {key_path}")
+            return
+            
+        user_id = key_path[1].name_or_id
+        session_id = key_path[3].name_or_id
+
+        print(f"Processing LDLJ for user: {user_id}, session: {session_id}")
+
+        doc_ref, data, sensor_arrays = get_session_data(user_id, session_id)
+        if not doc_ref: 
+            print(f"Session data not found for {session_id}")
+            return
+        
+        if data.get('ldlj_results'):
+            print(f"LDLJ: Already processed for {session_id}.")
+            return
+
+        t, gx, gy, gz = sensor_arrays
+        speed, fs = prepare_signal(t, gx, gy, gz)
+        
+        results, fig = process_ldlj_logic(speed, fs)
+
+        update_data = {}
+        if fig:
+            plot_url = upload_plot(fig, f"ldlj/{session_id}_ldlj.png")
+            update_data['ldlj_plot_url'] = plot_url
+            
+        if results:
+            avg_ldlj_score = np.mean([r['score'] for r in results])
+            update_data['ldljScore'] = avg_ldlj_score
+            
+        update_data.update({
+            'ldlj_results': results,
+            'ldlj_processed_at': firestore.SERVER_TIMESTAMP
+        })
+        doc_ref.update(update_data)
+        
+        print(f"Successfully processed LDLJ for session: {session_id}")
+
+    except Exception as e:
+        print(f"Error processing LDLJ: {e}")
+        # Optionally, update Firestore with error status
+        try:
+            if 'datastore_payload' in locals() and datastore_payload.value:
+                key_path = datastore_payload.value.key.path
+                if len(key_path) >= 4:
+                    user_id = key_path[1].name_or_id
+                    session_id = key_path[3].name_or_id
+                    session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
+                    session_ref.update({"ldljProcessingError": str(e)})
+        except Exception as update_e:
+            print(f"Failed to update session with error status: {update_e}")
+
