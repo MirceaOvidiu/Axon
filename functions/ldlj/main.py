@@ -7,6 +7,8 @@ from scipy.signal import find_peaks, butter, filtfilt
 from google.cloud import firestore
 from google.cloud import storage
 import firebase_admin
+import functions_framework
+from cloudevents.http import CloudEvent
 
 # --- Firestore & Storage Utils ---
 
@@ -130,18 +132,44 @@ def prepare_signal(t, gx, gy, gz):
     return speed, fs
 
 def calculate_ldlj_metric(speed, fs):
-    """Calculates the LDLJ (Log Dimensionless Jerk) metric for smoothness."""
-    # Jerk is the derivative of acceleration. Here we use speed's derivative.
-    dt = 1.0 / fs
-    jerk = np.diff(speed, 2) / (dt**2)
+    """
+    Calculate the Log Dimensionless Jerk (LDLJ) for a speed profile,
+    corrected for amplitude and duration (LDLJ-A).
+    """
+    if len(speed) < 3:
+        return -999.0
+        
+    # 1. Calculate Duration (D)
+    N = len(speed)
+    D = N / fs
     
-    # Dimensionless Jerk calculation
-    duration = len(speed) * dt
-    scale_factor = duration**3 / np.mean(speed)**2 if np.mean(speed) != 0 else duration**3
+    # 2. Calculate Peak Speed (A) for normalization
+    A = np.max(speed)
+    if A == 0: 
+        return -999.0
     
-    integral_jerk_squared = np.sum(jerk**2) * dt
+    # 3. Calculate Jerk
+    # Acceleration = 1st derivative of speed
+    accel = np.gradient(speed, 1.0/fs)
+    # Jerk = derivative of acceleration
+    jerk = np.gradient(accel, 1.0/fs)
     
-    ldlj = -np.log(scale_factor * integral_jerk_squared) if integral_jerk_squared > 0 else -np.inf
+    # 4. Integrate Squared Jerk
+    # Using trapezoidal rule for integration
+    if hasattr(np, 'trapezoid'):
+        integrated_squared_jerk = np.trapezoid(jerk**2, dx=1.0/fs)
+    else:
+        integrated_squared_jerk = np.trapz(jerk**2, dx=1.0/fs)
+    
+    # 5. Calculate Dimensionless Jerk (DJ)
+    dimensionless_jerk = integrated_squared_jerk * (D**3) / (A**2)
+    
+    # 6. Log Transform (LDLJ)
+    if dimensionless_jerk <= 0:
+        return -999.0
+        
+    ldlj = -np.log(dimensionless_jerk)
+    
     return ldlj
 
 # --- Main Logic ---
@@ -185,33 +213,46 @@ def process_ldlj_logic(speed, fs):
 @functions_framework.cloud_event
 def process_ldlj(cloud_event: CloudEvent) -> None:
     """
-    Triggers on Firestore document creation in 'sensor_data' subcollection.
-    Processes sensor data to calculate LDLJ and saves results.
+    Triggers on Firestore document update.
+    Processes sensor data to calculate LDLJ and saves results only when status changes to 'completed'.
     """
     try:
+        firestore_payload = cloud_event.data.get("value", {})
+        if not firestore_payload:
+            print("No data in Firestore event.")
+            return
+
+        # Check if importance update
+        old_value = cloud_event.data.get("oldValue", {})
+        old_fields = old_value.get("fields",     {})
+        new_fields = firestore_payload.get("fields", {})
+
+        old_status = old_fields.get("status", {}).get("stringValue")
+        new_status = new_fields.get("status", {}).get("stringValue")
+        
+        # Only process if status changes to 'completed'
+        if not (new_status == 'completed' and old_status != 'completed'):
+            print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
+            return
+
         # Extract user and session IDs from the document path
-        path_parts = cloud_event.data["document"].split("/")
-        if len(path_parts) < 8:
-            print(f"Invalid document path: {cloud_event.data['document']}")
+        path_parts = firestore_payload.get("name", "").split("/")
+        if len(path_parts) < 6:
+            print(f"Invalid document path: {firestore_payload.get('name')}")
             return
             
-        user_id = path_parts[1]
-        session_id = path_parts[3]
+        user_id = path_parts[-3]
+        session_id = path_parts[-1]
 
         print(f"Processing LDLJ for user: {user_id}, session: {session_id}")
 
-        # Initialize Firestore and Storage clients
-        db = firestore.Client()
-        storage_client = storage.Client()
-        bucket_name = os.environ.get('STORAGE_BUCKET', 'axon-bucket') 
-
         doc_ref, data, sensor_arrays = get_session_data(user_id, session_id)
-        if not doc_ref: return
-
-        # Check if the session is completed and not yet processed
-        if data.get('status') != 'completed' or data.get('ldlj_results'):
-            if data.get('ldlj_results'):
-                print(f"LDLJ: Already processed for {session_id}.")
+        if not doc_ref: 
+            print(f"Session data not found for {session_id}")
+            return
+        
+        if data.get('ldlj_results'):
+            print(f"LDLJ: Already processed for {session_id}.")
             return
 
         t, gx, gy, gz = sensor_arrays
@@ -219,11 +260,14 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
         
         results, fig = process_ldlj_logic(speed, fs)
 
+        update_data = {}
         if fig:
-            plot_url = upload_plot(fig, f"{session_id}_ldlj.png")
-            update_data = {'ldlj_plot_url': plot_url}
-        else:
-            update_data = {}
+            plot_url = upload_plot(fig, f"ldlj/{session_id}_ldlj.png")
+            update_data['ldlj_plot_url'] = plot_url
+            
+        if results:
+            avg_ldlj_score = np.mean([r['score'] for r in results])
+            update_data['ldljScore'] = avg_ldlj_score
             
         update_data.update({
             'ldlj_results': results,
@@ -237,12 +281,12 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
         print(f"Error processing LDLJ: {e}")
         # Optionally, update Firestore with error status
         try:
-            path_parts = firestore_payload.get("name", "").split("/")
+            path_parts = firestore_payload.get("name", "").split("/") if 'firestore_payload' in locals() else []
             if len(path_parts) >= 6:
                 user_id = path_parts[-3]
                 session_id = path_parts[-1]
-                db = firestore.Client()
-                session_ref = db.collection("users", user_id, "sessions").document(session_id)
+                session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
                 session_ref.update({"ldljProcessingError": str(e)})
         except Exception as update_e:
             print(f"Failed to update session with error status: {update_e}")
+

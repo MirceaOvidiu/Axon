@@ -1,6 +1,5 @@
 import os
 import io
-import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks, butter, filtfilt
@@ -131,26 +130,41 @@ def prepare_signal(t, gx, gy, gz):
         fs = 50.0 # Default fs
     return speed, fs
 
-def calculate_sparc_metric(speed, fs):
-    """Calculates the SPARC (Spectral Arc Length) metric for smoothness."""
-    speed_fft = np.fft.fft(speed)
-    speed_fft_mag = np.abs(speed_fft)
-    
-    freq_range = np.fft.fftfreq(len(speed), d=1.0/fs)
-    
-    # Select frequencies up to a cutoff (e.g., 10Hz)
-    cutoff_freq = 10.0
-    valid_indices = np.where((freq_range >= 0) & (freq_range <= cutoff_freq))[0]
-    
-    freqs = freq_range[valid_indices]
-    mags = speed_fft_mag[valid_indices]
-    
-    # Normalize magnitude
-    mags_normalized = mags / np.max(mags) if np.max(mags) > 0 else mags
-    
-    # Calculate arc length
-    arc_length = -np.sum(np.sqrt((np.diff(freqs))**2 + (np.diff(mags_normalized))**2))
-    return arc_length
+def calculate_sparc_metric(speed, fs, padlevel=4, fc=10.0, amp_th=0.05):
+    """
+    Computes the SPARC smoothness metric for a speed profile.
+    """
+    if len(speed) == 0:
+        return -999.0
+        
+    n = len(speed)
+    nfft = int(2 ** (np.ceil(np.log2(n)) + padlevel))
+
+    # FFT and normalised magnitude spectrum
+    freq_full = np.fft.rfftfreq(nfft, d=1.0 / fs)
+    spec = np.abs(np.fft.rfft(speed, n=nfft))
+    spec_norm = spec / spec.max() if spec.max() > 0 else spec
+
+    # Adaptive frequency cutoff: highest freq where amplitude > amp_th, capped at fc
+    above_th = np.where((freq_full <= fc) & (spec_norm >= amp_th))[0]
+    if len(above_th) == 0:
+        fc_idx = 1
+    else:
+        fc_idx = above_th[-1] + 1      # include that bin
+
+    freq = freq_full[:fc_idx]
+    magnitude = spec_norm[:fc_idx]
+
+    # Arc length of the normalised magnitude spectrum
+    if len(freq) < 2:
+        return -999.0
+
+    d_freq = np.diff(freq) / (freq[-1] - freq[0]) if (freq[-1] - freq[0]) > 0 else np.diff(freq)
+    d_mag = np.diff(magnitude)
+    arc_lengths = np.sqrt(d_freq ** 2 + d_mag ** 2)
+    sparc_value = -float(np.sum(arc_lengths))
+
+    return sparc_value
 
 # --- Main Logic ---
 
@@ -193,33 +207,49 @@ def process_sparc_logic(speed, fs):
 @functions_framework.cloud_event
 def process_sparc(cloud_event: CloudEvent) -> None:
     """
-    Triggers on Firestore document creation in 'sensor_data' subcollection.
-    Processes sensor data to calculate SPARC and saves results.
+    Triggers on Firestore document update.
+    Processes sensor data to calculate SPARC and saves results only when status changes to 'completed'.
     """
     try:
+        firestore_payload = cloud_event.data.get("value", {})
+        if not firestore_payload:
+            print("No data in Firestore event.")
+            return
+
+        # Check if importance update
+        old_value = cloud_event.data.get("oldValue", {})
+        old_fields = old_value.get("fields", {})
+        new_fields = firestore_payload.get("fields", {})
+        
+        old_status = old_fields.get("status", {}).get("stringValue")
+        new_status = new_fields.get("status", {}).get("stringValue")
+        
+        # Only process if status changes to 'completed'
+        if not (new_status == 'completed' and old_status != 'completed'):
+            print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
+            return
+
         # Extract user and session IDs from the document path
-        path_parts = cloud_event.data["document"].split("/")
-        if len(path_parts) < 8:
-            print(f"Invalid document path: {cloud_event.data['document']}")
+        # Expected format: projects/.../databases/(default)/documents/users/{user_id}/sessions/{session_id}
+        path_parts = firestore_payload.get("name", "").split("/")
+        if len(path_parts) < 6:
+            print(f"Invalid document path: {firestore_payload.get('name')}")
             return
             
-        user_id = path_parts[1]
-        session_id = path_parts[3]
+        # Assuming path ends with .../users/{user_id}/sessions/{session_id}
+        # The split parts will have user_id at -3 and session_id at -1
+        user_id = path_parts[-3]
+        session_id = path_parts[-1]
 
         print(f"Processing SPARC for user: {user_id}, session: {session_id}")
 
-        # Initialize Firestore and Storage clients
-        db = firestore.Client()
-        storage_client = storage.Client()
-        bucket_name = os.environ.get('STORAGE_BUCKET', 'axon-bucket') 
-
         doc_ref, data, sensor_arrays = get_session_data(user_id, session_id)
-        if not doc_ref: return
+        if not doc_ref: 
+            print(f"Session data not found for {session_id}")
+            return
 
-        # Check if the session is completed and not yet processed
-        if data.get('status') != 'completed' or data.get('sparc_results'):
-            if data.get('sparc_results'):
-                print(f"SPARC: Already processed for {session_id}.")
+        if data.get('sparc_results'):
+            print(f"SPARC: Already processed for {session_id}.")
             return
 
         t, gx, gy, gz = sensor_arrays
@@ -227,11 +257,14 @@ def process_sparc(cloud_event: CloudEvent) -> None:
         
         results, fig = process_sparc_logic(speed, fs)
 
+        update_data = {}
         if fig:
-            plot_url = upload_plot(fig, f"{session_id}_sparc.png")
-            update_data = {'sparc_plot_url': plot_url}
-        else:
-            update_data = {}
+            plot_url = upload_plot(fig, f"sparc/{session_id}_sparc.png")
+            update_data['sparc_plot_url'] = plot_url
+            
+        if results:
+            avg_sparc_score = np.mean([r['score'] for r in results])
+            update_data['sparcScore'] = avg_sparc_score
 
         update_data.update({
             'sparc_results': results,
@@ -245,12 +278,11 @@ def process_sparc(cloud_event: CloudEvent) -> None:
         print(f"Error processing SPARC: {e}")
         # Optionally, update Firestore with error status
         try:
-            path_parts = firestore_payload.get("name", "").split("/")
+            path_parts = firestore_payload.get("name", "").split("/") if 'firestore_payload' in locals() else []
             if len(path_parts) >= 6:
                 user_id = path_parts[-3]
                 session_id = path_parts[-1]
-                db = firestore.Client()
-                session_ref = db.collection("users", user_id, "sessions").document(session_id)
+                session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
                 session_ref.update({"sparcProcessingError": str(e)})
         except Exception as update_e:
             print(f"Failed to update session with error status: {update_e}")
