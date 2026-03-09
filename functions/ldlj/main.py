@@ -230,8 +230,8 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
         old_status = old_fields.get("status", {}).get("stringValue")
         new_status = new_fields.get("status", {}).get("stringValue")
         
-        # Only process if status changes to 'completed'
-        if not (new_status == 'completed' and old_status != 'completed'):
+        # Only process if status changes to 'upload_completed'
+        if not (new_status == 'upload_completed' and old_status != 'upload_completed'):
             print(f"Skipping processing for status update from '{old_status}' to '{new_status}'.")
             return
 
