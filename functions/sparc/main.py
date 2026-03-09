@@ -222,11 +222,11 @@ def process_sparc(cloud_event: CloudEvent) -> None:
             return
 
         # Check if it's an important update
-        old_value = datastore_payload.old_value
-        new_value = datastore_payload.value
+        old_entity = datastore_payload.old_value.entity if datastore_payload.old_value else None
+        new_entity = datastore_payload.value.entity if datastore_payload.value else None
 
-        old_status = old_value.properties.get("status", {}).string_value if old_value else None
-        new_status = new_value.properties.get("status", {}).string_value if new_value else None
+        old_status = old_entity.properties.get("status", {}).string_value if old_entity and old_entity.properties else None
+        new_status = new_entity.properties.get("status", {}).string_value if new_entity and new_entity.properties else None
         
         # Only process if status changes to 'upload_completed'
         if not (new_status == 'upload_completed' and old_status != 'upload_completed'):
@@ -234,13 +234,13 @@ def process_sparc(cloud_event: CloudEvent) -> None:
             return
 
         # Extract user and session IDs from the document path
-        key_path = new_value.key.path
-        if len(key_path) < 4:
+        key_path = new_entity.key.path
+        if len(key_path) < 2:
             print(f"Invalid key path: {key_path}")
             return
             
-        user_id = key_path[1].name_or_id
-        session_id = key_path[3].name_or_id
+        user_id = key_path[0].name_or_id
+        session_id = key_path[1].name_or_id
 
         print(f"Processing SPARC for user: {user_id}, session: {session_id}")
 
@@ -279,11 +279,11 @@ def process_sparc(cloud_event: CloudEvent) -> None:
         print(f"Error processing SPARC: {e}")
         # Optionally, update Firestore with error status
         try:
-            if 'datastore_payload' in locals() and datastore_payload.value:
-                key_path = datastore_payload.value.key.path
-                if len(key_path) >= 4:
-                    user_id = key_path[1].name_or_id
-                    session_id = key_path[3].name_or_id
+            if 'datastore_payload' in locals() and datastore_payload.value and datastore_payload.value.entity:
+                key_path = datastore_payload.value.entity.key.path
+                if len(key_path) >= 2:
+                    user_id = key_path[0].name_or_id
+                    session_id = key_path[1].name_or_id
                     session_ref = db.collection("users").document(user_id).collection("sessions").document(session_id)
                     session_ref.update({"sparcProcessingError": str(e)})
         except Exception as update_e:
