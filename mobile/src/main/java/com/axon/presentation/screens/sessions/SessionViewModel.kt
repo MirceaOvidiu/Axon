@@ -68,6 +68,9 @@ class SessionViewModel
         private val _isLoading = MutableStateFlow(false)
         val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+        private val _deletingSessionId = MutableStateFlow<Long?>(null)
+        val deletingSessionId: StateFlow<Long?> = _deletingSessionId.asStateFlow()
+
         fun loadSessionDetails(sessionId: Long) {
             viewModelScope.launch {
                 _isLoading.value = true
@@ -111,7 +114,7 @@ class SessionViewModel
                     }
 
                     // Polling loop
-                    for (i in 1..10) { // Poll for 20 seconds max
+                    repeat(10) { // Poll for 20 seconds max
                         delay(2000) // 2-second delay
                         sessionRepository.syncSessionsFromCloud()
                         updatedSession = sessionRepository.getSession(sessionId)
@@ -132,11 +135,14 @@ class SessionViewModel
 
         fun deleteSession(sessionId: Long) {
             viewModelScope.launch {
+                _deletingSessionId.value = sessionId
                 try {
                     sessionRepository.deleteSession(sessionId)
                     Log.d(TAG, "Deleted session: $sessionId")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to delete session", e)
+                } finally {
+                    _deletingSessionId.value = null
                 }
             }
         }

@@ -206,12 +206,22 @@ fun CloudSyncScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
-                        text = { Text("Local Sessions (${uiState.localSessions.size})") }
+                        text = {
+                            Text(
+                                "Local Sessions (${uiState.localSessions.size})",
+                                fontSize = 14.sp
+                            )
+                        }
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text("Cloud Sessions (${uiState.cloudSessions.size})") }
+                        text = {
+                            Text(
+                                "Cloud Sessions (${uiState.cloudSessions.size})",
+                                fontSize = 14.sp
+                            )
+                        }
                     )
                 }
 
@@ -224,6 +234,7 @@ fun CloudSyncScreen(
                         onUploadSession = viewModel::uploadSession,
                         isUploading = uiState.isUploading
                     )
+
                     1 -> CloudSessionsList(
                         sessions = uiState.cloudSessions,
                         onDownloadSession = viewModel::downloadSession,

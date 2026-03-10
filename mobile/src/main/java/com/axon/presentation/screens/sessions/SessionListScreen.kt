@@ -2,6 +2,7 @@ package com.axon.presentation.screens.sessions
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +54,7 @@ fun SessionListScreen(
     onSessionClick: (Long) -> Unit,
 ) {
     val sessions by viewModel.sessions.collectAsState()
+    val deletingSessionId by viewModel.deletingSessionId.collectAsState()
 
     AxonTheme(darkTheme = true) {
         Scaffold(
@@ -112,6 +115,7 @@ fun SessionListScreen(
                             session = session,
                             onClick = { onSessionClick(session.id) },
                             onDelete = { viewModel.deleteSession(session.id) },
+                            isDeleting = deletingSessionId == session.id,
                         )
                     }
 
@@ -156,6 +160,7 @@ fun SessionCard(
     session: Session,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    isDeleting: Boolean = false,
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -223,12 +228,25 @@ fun SessionCard(
                 }
             }
 
-            IconButton(onClick = onDelete) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_delete_24),
-                    contentDescription = "Delete session",
-                    tint = Color(0xFFFF6B6B),
-                )
+            if (isDeleting) {
+                Box(
+                    modifier = Modifier.size(48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color(0xFFFF6B6B),
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            } else {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_delete_24),
+                        contentDescription = "Delete session",
+                        tint = Color(0xFFFF6B6B),
+                    )
+                }
             }
         }
     }

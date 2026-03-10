@@ -1,9 +1,15 @@
 package com.axon.presentation.screens.auth
 
 import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +67,8 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.axon.R
 import com.axon.domain.model.AuthState
+import kotlin.math.cos
+import kotlin.math.sin
 import com.axon.presentation.components.AxonLogo
 import com.axon.presentation.components.LogoSize
 import com.axon.presentation.screens.dashboard.primaryColor
@@ -128,15 +136,66 @@ fun AuthScreen(
     var displayName by remember { mutableStateOf("") }
     var showForgotPassword by remember { mutableStateOf(false) }
 
-    // Touch-reactive gradient state
+    // Touch-reactive liquid glass state
     var touchX by remember { mutableFloatStateOf(540f) }
     var touchY by remember { mutableFloatStateOf(800f) }
     var isTouching by remember { mutableStateOf(false) }
 
+    // Animated touch response
+    val animatedTouchX by animateFloatAsState(
+        targetValue = touchX,
+        animationSpec = tween(150, easing = LinearEasing),
+        label = "touchX"
+    )
+    val animatedTouchY by animateFloatAsState(
+        targetValue = touchY,
+        animationSpec = tween(150, easing = LinearEasing),
+        label = "touchY"
+    )
     val animatedRadius by animateFloatAsState(
-        targetValue = if (isTouching) 1200f else 900f,
-        animationSpec = tween(600),
+        targetValue = if (isTouching) 400f else 250f,
+        animationSpec = tween(400),
         label = "radius"
+    )
+
+    // Infinite transition for floating blobs
+    val infiniteTransition = rememberInfiniteTransition(label = "liquid")
+
+    val blob1Angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "blob1"
+    )
+    val blob2Angle by infiniteTransition.animateFloat(
+        initialValue = 120f,
+        targetValue = 480f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(25000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "blob2"
+    )
+    val blob3Angle by infiniteTransition.animateFloat(
+        initialValue = 240f,
+        targetValue = 600f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(18000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "blob3"
+    )
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
     )
 
     val scrollState = rememberScrollState()
@@ -146,7 +205,7 @@ fun AuthScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0A0E14))
+                .background(Color(0xFF050810))
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
@@ -160,29 +219,157 @@ fun AuthScreen(
                         }
                     }
                 }
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            if (isTouching) Color(0xFF1E4D7B) else Color(0xFF1A3A5C),
-                            Color(0xFF0F1A2A),
-                            Color(0xFF0A0E14),
-                        ),
-                        center = Offset(touchX, touchY + scrollOffset),
-                        radius = animatedRadius,
-                    )
-                )
-                .background(
+        ) {
+            // Liquid glass background canvas
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val width = size.width
+                val height = size.height
+
+                // Base dark gradient
+                drawRect(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0x001A3A5C),
-                            Color(0x332196F3),
-                            Color(0x00000000),
-                        ),
-                        startY = scrollOffset,
-                        endY = 600f + scrollOffset,
+                            Color(0xFF0A0E18),
+                            Color(0xFF050810),
+                            Color(0xFF0A1020)
+                        )
                     )
                 )
-        ) {
+
+                // Floating blob 1 - Large blue
+                val blob1X = width * 0.3f + cos(Math.toRadians(blob1Angle.toDouble())).toFloat() * width * 0.2f
+                val blob1Y = height * 0.25f + sin(Math.toRadians(blob1Angle.toDouble())).toFloat() * height * 0.1f - scrollOffset * 0.3f
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x40104080),
+                            Color(0x20082050),
+                            Color.Transparent
+                        ),
+                        center = Offset(blob1X, blob1Y),
+                        radius = 350f * pulseScale
+                    ),
+                    radius = 350f * pulseScale,
+                    center = Offset(blob1X, blob1Y)
+                )
+
+                // Floating blob 2 - Cyan accent
+                val blob2X = width * 0.75f + cos(Math.toRadians(blob2Angle.toDouble())).toFloat() * width * 0.15f
+                val blob2Y = height * 0.5f + sin(Math.toRadians(blob2Angle.toDouble())).toFloat() * height * 0.15f - scrollOffset * 0.2f
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x3500A5C8),
+                            Color(0x18006080),
+                            Color.Transparent
+                        ),
+                        center = Offset(blob2X, blob2Y),
+                        radius = 280f * pulseScale
+                    ),
+                    radius = 280f * pulseScale,
+                    center = Offset(blob2X, blob2Y)
+                )
+
+                // Floating blob 3 - Purple hint
+                val blob3X = width * 0.2f + cos(Math.toRadians(blob3Angle.toDouble())).toFloat() * width * 0.25f
+                val blob3Y = height * 0.75f + sin(Math.toRadians(blob3Angle.toDouble())).toFloat() * height * 0.1f - scrollOffset * 0.15f
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x30401080),
+                            Color(0x15200840),
+                            Color.Transparent
+                        ),
+                        center = Offset(blob3X, blob3Y),
+                        radius = 300f
+                    ),
+                    radius = 300f,
+                    center = Offset(blob3X, blob3Y)
+                )
+
+                // Touch-reactive liquid blob
+                val touchCenterY = animatedTouchY + scrollOffset
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = if (isTouching) {
+                            listOf(
+                                Color(0x602196F3),
+                                Color(0x401565C0),
+                                Color(0x200D47A1),
+                                Color.Transparent
+                            )
+                        } else {
+                            listOf(
+                                Color(0x301565C0),
+                                Color(0x180D47A1),
+                                Color.Transparent
+                            )
+                        },
+                        center = Offset(animatedTouchX, touchCenterY),
+                        radius = animatedRadius
+                    ),
+                    radius = animatedRadius,
+                    center = Offset(animatedTouchX, touchCenterY)
+                )
+
+                // Secondary touch ripple
+                if (isTouching) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                Color(0x4000BCD4),
+                                Color(0x200097A7),
+                                Color.Transparent
+                            ),
+                            center = Offset(animatedTouchX, touchCenterY),
+                            radius = animatedRadius * 1.5f
+                        ),
+                        radius = animatedRadius * 1.5f,
+                        center = Offset(animatedTouchX, touchCenterY)
+                    )
+                }
+
+                // Glass shimmer overlay
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0x08FFFFFF),
+                            Color.Transparent,
+                            Color(0x05FFFFFF),
+                            Color.Transparent
+                        ),
+                        start = Offset(0f, scrollOffset),
+                        end = Offset(width, height + scrollOffset)
+                    )
+                )
+
+                // Top vignette for depth
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x40000000),
+                            Color.Transparent
+                        ),
+                        startY = 0f,
+                        endY = 200f
+                    )
+                )
+
+                // Bottom vignette
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0x30000000)
+                        ),
+                        startY = height - 200f,
+                        endY = height
+                    )
+                )
+            }
+
+            // Content layer
             Column(
                 modifier = Modifier
                     .fillMaxSize()
