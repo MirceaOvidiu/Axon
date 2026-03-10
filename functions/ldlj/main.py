@@ -1,5 +1,6 @@
 import os
 import io
+import base64
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -219,9 +220,14 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
     Processes sensor data to calculate LDLJ and saves results only when status changes to 'completed'.
     """
     try:
-        # The data is a protobuf message, so we need to parse it.
+        # The data may arrive wrapped in a Pub/Sub message envelope.
+        raw_data = cloud_event.data
+        if isinstance(raw_data, dict):
+            # Pub/Sub binding: extract base64-encoded protobuf from the message
+            raw_data = base64.b64decode(raw_data["message"]["data"])
+
         datastore_payload = datastore.EntityEventData()
-        datastore_payload._pb.ParseFromString(cloud_event.data)
+        datastore_payload._pb.ParseFromString(raw_data)
 
         if not datastore_payload.value:
             print("No data in Datastore event.")
