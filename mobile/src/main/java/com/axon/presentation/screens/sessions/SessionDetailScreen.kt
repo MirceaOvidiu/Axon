@@ -683,12 +683,12 @@ fun MovementQualityCard(
             // Tables
             if (!sparcResults.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                RepetitionTable(title = "SPARC (per Rep)", results = sparcResults)
+                RepetitionTable(title = "SPARC", results = sparcResults)
             }
 
             if (!ldljResults.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                RepetitionTable(title = "LDLJ-A (per Rep)", results = ldljResults)
+                RepetitionTable(title = "LDLJ-A", results = ldljResults)
             }
         }
     }
@@ -702,7 +702,7 @@ fun RepetitionTable(title: String, results: List<com.axon.domain.model.SessionRe
         
         Row(Modifier.fillMaxWidth()) {
             AnalysisTableCell(text = "Rep", weight = 0.2f, header = true)
-            AnalysisTableCell(text = "Dur (s)", weight = 0.4f, header = true)
+            AnalysisTableCell(text = "Duration", weight = 0.4f, header = true)
             AnalysisTableCell(text = "Score", weight = 0.4f, header = true)
         }
         

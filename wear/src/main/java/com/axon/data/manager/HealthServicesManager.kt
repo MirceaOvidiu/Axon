@@ -59,15 +59,22 @@ class HealthServicesManager(
         }
 
     fun registerForHeartRateData() {
-        if (isRegistered) {
-            Log.d(TAG, "Already registered for heart rate data")
-            return
-        }
-
-        Log.d(TAG, "Starting registration process...")
+        Log.d(TAG, "Starting registration process... (currently registered: $isRegistered)")
 
         scope.launch {
             try {
+                // Always try to unregister first to ensure clean state
+                // This handles cases where the app was killed but the singleton persisted
+                if (isRegistered) {
+                    Log.d(TAG, "Unregistering existing callback before re-registering...")
+                    try {
+                        measureClient.unregisterMeasureCallback(DataType.HEART_RATE_BPM, measureCallback)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to unregister existing callback: ${e.message}")
+                    }
+                    isRegistered = false
+                }
+
                 Log.d(TAG, "Checking device capabilities...")
                 // Check if heart rate measurement is supported
                 val capabilities = measureClient.getCapabilities()
@@ -86,23 +93,21 @@ class HealthServicesManager(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to register for heart rate data: ${e.message}", e)
+                isRegistered = false
             }
         }
     }
 
     suspend fun unregisterForHeartRateData() {
-        if (!isRegistered) {
-            Log.d(TAG, "Not registered, skipping unregister")
-            return
-        }
+        Log.d(TAG, "Unregistering for heart rate data (currently registered: $isRegistered)")
 
         try {
-            Log.d(TAG, "Unregistering for heart rate data")
             measureClient.unregisterMeasureCallback(DataType.HEART_RATE_BPM, measureCallback)
-            isRegistered = false
             Log.d(TAG, "Successfully unregistered for heart rate data")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to unregister for heart rate data: ${e.message}", e)
+            Log.w(TAG, "Failed to unregister for heart rate data: ${e.message}")
+        } finally {
+            isRegistered = false
         }
     }
 }

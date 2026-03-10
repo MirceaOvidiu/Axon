@@ -1,7 +1,11 @@
 import os
 import io
+import base64
 import datetime
 import numpy as np
+from google.auth import compute_engine, iam
+from google.auth.transport import requests as google_auth_requests
+from google.oauth2 import service_account
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks, butter, filtfilt
 from google.cloud import firestore
@@ -59,12 +63,24 @@ def upload_plot(figure, destination_blob_name):
 
     # Upload the BytesIO object
     blob.upload_from_file(buf, content_type='image/png')
-    
-    # Make the blob publicly viewable
-    blob.make_public()
 
-    # Return the public URL
-    return blob.public_url
+    # Generate a V4 signed URL using IAM signBlob API (works on Cloud Run without a key file)
+    auth_request = google_auth_requests.Request()
+    credentials = compute_engine.Credentials()
+    credentials.refresh(auth_request)
+    signer = iam.Signer(auth_request, credentials, credentials.service_account_email)
+    signing_credentials = service_account.Credentials(
+        signer=signer,
+        service_account_email=credentials.service_account_email,
+        token_uri="https://oauth2.googleapis.com/token",
+    )
+    signed_url = blob.generate_signed_url(
+        version="v4",
+        expiration=datetime.timedelta(days=7),
+        method="GET",
+        credentials=signing_credentials,
+    )
+    return signed_url
 
 # --- Analysis Utils ---
 
@@ -219,9 +235,14 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
     Processes sensor data to calculate LDLJ and saves results only when status changes to 'completed'.
     """
     try:
-        # The data is a protobuf message, so we need to parse it.
+        # The data may arrive wrapped in a Pub/Sub message envelope.
+        raw_data = cloud_event.data
+        if isinstance(raw_data, dict):
+            # Pub/Sub binding: extract base64-encoded protobuf from the message
+            raw_data = base64.b64decode(raw_data["message"]["data"])
+
         datastore_payload = datastore.EntityEventData()
-        datastore_payload._pb.ParseFromString(cloud_event.data)
+        datastore_payload._pb.ParseFromString(raw_data)
 
         if not datastore_payload.value:
             print("No data in Datastore event.")
