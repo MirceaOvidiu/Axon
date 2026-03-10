@@ -40,9 +40,9 @@ def get_session_data(user_id, session_id):
         return None, None, None
 
     t = np.array([d['timestamp'] for d in sensor_data_list])
-    gx = np.array([d['gyro_x'] for d in sensor_data_list])
-    gy = np.array([d['gyro_y'] for d in sensor_data_list])
-    gz = np.array([d['gyro_z'] for d in sensor_data_list])
+    gx = np.array([d['gyroX'] for d in sensor_data_list])
+    gy = np.array([d['gyroY'] for d in sensor_data_list])
+    gz = np.array([d['gyroZ'] for d in sensor_data_list])
 
     return doc_ref, data, (t, gx, gy, gz)
 
