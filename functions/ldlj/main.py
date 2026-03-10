@@ -252,8 +252,10 @@ def process_ldlj(cloud_event: CloudEvent) -> None:
         old_entity = datastore_payload.old_value.entity if datastore_payload.old_value else None
         new_entity = datastore_payload.value.entity if datastore_payload.value else None
 
-        old_status = old_entity.properties.get("status", {}).string_value if old_entity and old_entity.properties else None
-        new_status = new_entity.properties.get("status", {}).string_value if new_entity and new_entity.properties else None
+        old_status_prop = old_entity.properties.get("status") if old_entity and old_entity.properties else None
+        old_status = old_status_prop.string_value if old_status_prop is not None else None
+        new_status_prop = new_entity.properties.get("status") if new_entity and new_entity.properties else None
+        new_status = new_status_prop.string_value if new_status_prop is not None else None
         
         # Only process if status changes to 'upload_completed'
         if not (new_status == 'upload_completed' and old_status != 'upload_completed'):

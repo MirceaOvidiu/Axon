@@ -143,7 +143,11 @@ class SessionRepositoryImplementation
                         if ((existingSession.sparcScore == null && sessionFirestore.sparcScore != null) ||
                             (existingSession.ldljScore == null && sessionFirestore.ldljScore != null) ||
                             (existingSession.sparcResults.isNullOrEmpty() && !sessionFirestore.sparc_results.isNullOrEmpty()) ||
-                            (existingSession.ldljResults.isNullOrEmpty() && !sessionFirestore.ldlj_results.isNullOrEmpty())) {
+                            (existingSession.ldljResults.isNullOrEmpty() && !sessionFirestore.ldlj_results.isNullOrEmpty()) ||
+                            (existingSession.sparcPlotUrl == null && sessionFirestore.sparc_plot_url != null) ||
+                            (existingSession.ldljPlotUrl == null && sessionFirestore.ldlj_plot_url != null) ||
+                            (existingSession.hrvScore == null && sessionFirestore.hrvScore != null) ||
+                            (existingSession.hrvPlotUrl == null && sessionFirestore.hrv_plot_url != null)) {
 
                             val updatedSession = existingSession.copy(
                                 sparcScore = sessionFirestore.sparcScore,
@@ -152,6 +156,10 @@ class SessionRepositoryImplementation
                                 ldljResults = convertMapToResults(sessionFirestore.ldlj_results),
                                 sparcPlotUrl = sessionFirestore.sparc_plot_url,
                                 ldljPlotUrl = sessionFirestore.ldlj_plot_url,
+                                hrvScore = sessionFirestore.hrvScore,
+                                hrvSdnn = sessionFirestore.hrv_sdnn,
+                                hrvMeanHr = sessionFirestore.hrv_mean_hr,
+                                hrvPlotUrl = sessionFirestore.hrv_plot_url,
                             )
                             sessionDao.insertSession(updatedSession)
                             Log.d(TAG, "Updated scores and results for session $firestoreId")
@@ -174,6 +182,10 @@ class SessionRepositoryImplementation
                         ldljResults = convertMapToResults(sessionFirestore.ldlj_results),
                         sparcPlotUrl = sessionFirestore.sparc_plot_url,
                         ldljPlotUrl = sessionFirestore.ldlj_plot_url,
+                        hrvScore = sessionFirestore.hrvScore,
+                        hrvSdnn = sessionFirestore.hrv_sdnn,
+                        hrvMeanHr = sessionFirestore.hrv_mean_hr,
+                        hrvPlotUrl = sessionFirestore.hrv_plot_url,
                     )
                     val localId = sessionDao.insertSession(session.toEntity())
 

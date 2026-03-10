@@ -33,8 +33,9 @@ keystore-b64.txt
 # For local dev, download from Firebase Console
 
 # ── Miscellaneous ───────────────────────────────────────────────────────
-movement/.venv/
-movement/.__pycache__/
+**/.venv/
+**/__pycache__/
 movement/sessionData.csv
+local-test/hrv_output.png
 
 cmds.txt

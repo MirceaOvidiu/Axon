@@ -85,7 +85,7 @@ class SessionViewModel
                     Log.d(TAG, "Loaded initial session details for $sessionId")
 
                     // If the local session already has scores, update the cloud session state
-                    if (localSession?.sparcScore != null) {
+                    if (localSession?.sparcScore != null || localSession?.hrvScore != null) {
                         _cloudSession.value = localSession
                     } else {
                         // Otherwise, start polling for cloud scores in a non-blocking way
@@ -106,25 +106,22 @@ class SessionViewModel
                 try {
                     // Initial sync before polling
                     sessionRepository.syncSessionsFromCloud()
-                    var updatedSession = sessionRepository.getSession(sessionId)
-                    if (updatedSession?.sparcScore != null) {
-                        _cloudSession.value = updatedSession
-                        Log.d(TAG, "Scores found after initial sync.")
-                        return@launch
-                    }
+                    var localSession = sessionRepository.getSession(sessionId)
+                    if (localSession != null) _cloudSession.value = localSession
 
-                    // Polling loop
-                    repeat(10) { // Poll for 20 seconds max
-                        delay(2000) // 2-second delay
+                    // Polling loop — always update UI on every tick, break early only when all
+                    // movement scores (SPARC + LDLJ) are present. HRV may not exist for every session.
+                    for (i in 0..9) {
+                        delay(2000) // 2-second interval = 20 seconds max
                         sessionRepository.syncSessionsFromCloud()
-                        updatedSession = sessionRepository.getSession(sessionId)
-                        if (updatedSession?.sparcScore != null) {
-                            _cloudSession.value = updatedSession
-                            Log.d(TAG, "Scores updated after polling.")
-                            return@launch
+                        localSession = sessionRepository.getSession(sessionId)
+                        if (localSession != null) _cloudSession.value = localSession
+                        if (localSession?.sparcScore != null && localSession?.ldljScore != null) {
+                            Log.d(TAG, "All movement scores found after ${i + 1} poll(s).")
+                            break
                         }
                     }
-                    Log.d(TAG, "Polling finished, scores not found.")
+                    Log.d(TAG, "Polling finished.")
                 } catch (e: Exception) {
                     Log.e(TAG, "Error while polling for scores", e)
                 } finally {

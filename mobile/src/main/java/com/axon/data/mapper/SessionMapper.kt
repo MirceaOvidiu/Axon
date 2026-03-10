@@ -20,6 +20,10 @@ fun SessionEntity.toDomain(): Session =
         ldljResults = this.ldljResults,
         sparcPlotUrl = this.sparcPlotUrl,
         ldljPlotUrl = this.ldljPlotUrl,
+        hrvScore = this.hrvScore,
+        hrvSdnn = this.hrvSdnn,
+        hrvMeanHr = this.hrvMeanHr,
+        hrvPlotUrl = this.hrvPlotUrl,
     )
 
 fun Session.toEntity(): SessionEntity =
@@ -37,6 +41,10 @@ fun Session.toEntity(): SessionEntity =
         ldljResults = this.ldljResults,
         sparcPlotUrl = this.sparcPlotUrl,
         ldljPlotUrl = this.ldljPlotUrl,
+        hrvScore = this.hrvScore,
+        hrvSdnn = this.hrvSdnn,
+        hrvMeanHr = this.hrvMeanHr,
+        hrvPlotUrl = this.hrvPlotUrl,
     )
 
 fun SessionTransferData.toSensorDataEntities(sessionId: Long): List<SensorDataEntity> =
