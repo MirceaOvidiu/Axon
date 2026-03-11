@@ -215,7 +215,7 @@ fun AnalysisCard(session: Session?, isPolling: Boolean) {
                         fontSize = 14.sp
                     )
                 }
-            } else if (session?.sparcScore != null || session?.ldljScore != null) {
+            } else if (session?.sparcScore != null || session?.ldljScore != null || session?.hrvScore != null) {
                 // Display scores if available
                 MovementQualityCard(
                     sparcScore = session.sparcScore,
@@ -223,7 +223,11 @@ fun AnalysisCard(session: Session?, isPolling: Boolean) {
                     sparcResults = session.sparcResults,
                     ldljResults = session.ldljResults,
                     sparcPlotUrl = session.sparcPlotUrl,
-                    ldljPlotUrl = session.ldljPlotUrl
+                    ldljPlotUrl = session.ldljPlotUrl,
+                    hrvScore = session.hrvScore,
+                    hrvSdnn = session.hrvSdnn,
+                    hrvMeanHr = session.hrvMeanHr,
+                    hrvPlotUrl = session.hrvPlotUrl,
                 )
             } else {
                 // Show message if scores are not available
@@ -614,7 +618,11 @@ fun MovementQualityCard(
     sparcResults: List<com.axon.domain.model.SessionRepResult>?,
     ldljResults: List<com.axon.domain.model.SessionRepResult>?,
     sparcPlotUrl: String?,
-    ldljPlotUrl: String?
+    ldljPlotUrl: String?,
+    hrvScore: Double?,
+    hrvSdnn: Double?,
+    hrvMeanHr: Double?,
+    hrvPlotUrl: String?,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -659,6 +667,40 @@ fun MovementQualityCard(
                 }
             }
 
+            // HRV Scores
+            if (hrvScore != null || hrvMeanHr != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    if (hrvScore != null) {
+                        StatItem(
+                            label = "HRV (RMSSD)",
+                            value = "%.1f".format(hrvScore),
+                            unit = "ms",
+                            color = Color(0xFF26C6DA),
+                        )
+                    }
+                    if (hrvSdnn != null) {
+                        StatItem(
+                            label = "SDNN",
+                            value = "%.1f".format(hrvSdnn),
+                            unit = "ms",
+                            color = Color(0xFF42A5F5),
+                        )
+                    }
+                    if (hrvMeanHr != null) {
+                        StatItem(
+                            label = "Mean HR",
+                            value = "%.0f".format(hrvMeanHr),
+                            unit = "BPM",
+                            color = Color(0xFFEF5350),
+                        )
+                    }
+                }
+            }
+
             // Plots
             if (sparcPlotUrl != null) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -677,6 +719,16 @@ fun MovementQualityCard(
                     model = ldljPlotUrl,
                     contentDescription = "LDLJ Analysis Plot",
                     modifier = Modifier.fillMaxWidth().height(200.dp).background(Color.White)
+                )
+            }
+
+            if (hrvPlotUrl != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("HRV Analysis", color = textMutedDark, fontSize = 12.sp)
+                AsyncImage(
+                    model = hrvPlotUrl,
+                    contentDescription = "HRV Analysis Plot",
+                    modifier = Modifier.fillMaxWidth().height(200.dp).background(Color.Black)
                 )
             }
 

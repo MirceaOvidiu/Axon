@@ -24,4 +24,8 @@ data class SessionEntity(
     val ldljResults: List<com.axon.domain.model.SessionRepResult>? = null,
     val sparcPlotUrl: String? = null,
     val ldljPlotUrl: String? = null,
+    val hrvScore: Double? = null,
+    val hrvSdnn: Double? = null,
+    val hrvMeanHr: Double? = null,
+    val hrvPlotUrl: String? = null,
 )
