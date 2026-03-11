@@ -142,7 +142,7 @@ Axon/
 - **Python 3.10+** (for local algorithm testing)
 - **Docker** (for building/testing Cloud Run containers locally)
 - **Firebase CLI** (`npm install -g firebase-tools`)
-- **Google Cloud SDK** (`gcloud`) with project `axon-a4b3b` configured
+- **Google Cloud SDK** (`gcloud`) with project `<ID>` configured
 - A Wear OS smartwatch or emulator (API 30+)
 - A physical Android phone or emulator (API 30+)
 
@@ -185,22 +185,22 @@ Each service has its own Dockerfile. Build and deploy from the respective direct
 
 ```bash
 cd functions/sparc
-gcloud builds submit --tag gcr.io/axon-a4b3b/axon-sparc
-gcloud run deploy axon-sparc --image gcr.io/axon-a4b3b/axon-sparc --region europe-west1
+gcloud builds submit --tag gcr.io/<ID>/axon-sparc
+gcloud run deploy axon-sparc --image gcr.io/<ID>/axon-sparc --region europe-west1
 
 cd ../ldlj
-gcloud builds submit --tag gcr.io/axon-a4b3b/axon-ldlj
-gcloud run deploy axon-ldlj --image gcr.io/axon-a4b3b/axon-ldlj --region europe-west1
+gcloud builds submit --tag gcr.io/<ID>/axon-ldlj
+gcloud run deploy axon-ldlj --image gcr.io/<ID>/axon-ldlj --region europe-west1
 
 cd ../hrv
-gcloud builds submit --tag gcr.io/axon-a4b3b/axon-hrv
-gcloud run deploy axon-hrv --image gcr.io/axon-a4b3b/axon-hrv --region europe-west1
+gcloud builds submit --tag gcr.io/<ID>/axon-hrv
+gcloud run deploy axon-hrv --image gcr.io/<ID>/axon-hrv --region europe-west1
 ```
 
 ### 6. Deploy Firestore rules and indexes
 
 ```bash
-firebase deploy --only firestore --project axon-a4b3b
+firebase deploy --only firestore --project <ID>
 ```
 
 ---
@@ -270,9 +270,9 @@ Three containerised services, each triggered by Eventarc on Firestore document w
 
 | Service | Image | Algorithm | Output Fields |
 |---|---|---|---|
-| `axon-sparc` | `gcr.io/axon-a4b3b/axon-sparc` | Spectral arc length | `sparcScore`, `sparc_results`, `sparc_plot_url` |
-| `axon-ldlj` | `gcr.io/axon-a4b3b/axon-ldlj` | Log dimensionless jerk | `ldljScore`, `ldlj_results`, `ldlj_plot_url` |
-| `axon-hrv` | `gcr.io/axon-a4b3b/axon-hrv` | Heart rate variability | `hrvScore`, `hrv_sdnn`, `hrv_mean_hr`, `hrv_pnn50`, `hrv_plot_url` |
+| `axon-sparc` | `gcr.io/<ID>/axon-sparc` | Spectral arc length | `sparcScore`, `sparc_results`, `sparc_plot_url` |
+| `axon-ldlj` | `gcr.io/<ID>/axon-ldlj` | Log dimensionless jerk | `ldljScore`, `ldlj_results`, `ldlj_plot_url` |
+| `axon-hrv` | `gcr.io/<ID>/axon-hrv` | Heart rate variability | `hrvScore`, `hrv_sdnn`, `hrv_mean_hr`, `hrv_pnn50`, `hrv_plot_url` |
 
 ---
 
